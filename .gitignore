@@ -1,0 +1,11 @@
+# Ignore Mac system files
+.DS_store
+
+# Ignore all .pdf files
+*.pdf
+
+# Ignore __pycache__ file
+__pycache__
+
+# Ignore .egg-info
+*.egg-info
