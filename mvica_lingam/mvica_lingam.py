@@ -81,9 +81,40 @@ def mvica_lingam(
     DQW = QW / D
 
     # Step 4: causal effects
-    B = np.array([np.eye(p)] * m) - DQW  # B is not yet lower triangular
+    B_hat = np.array([np.eye(p)] * m) - DQW  # B_hat is not yet lower triangular
 
     # Step 5: estimate the causal order
-    P = ...
+    order = find_order(B_hat)
+    P = np.eye(p)[order]
+    B = P @ B_hat @ P.T
     
     return P, B, Sigmas, S_avg
+
+
+def find_order(B_hat):
+    """This function finds a permutation P such that P @ B_hat @ P.T
+    is as close as possible to strictly lower triangular.
+
+    Args:
+        B_hat : ndarray, shape (m, p, p)
+            Causal effect matrices, whose rows and columns are permuted
+            by a common permutation P. We assume that ``B_hat`` is such that 
+            P @ B_hat @ P.T are close to strictly lower triangular.
+
+    Returns:
+        order: ndarray, shape (p,)
+            ``order`` represents the permutation in P.
+    """
+    _, p, _ = B_hat.shape
+    B_avg = np.mean(np.abs(B_hat), axis=0)
+    B_sort = np.sort(B_avg, axis=1)[:, ::-1]
+    B_argsort = np.argsort(B_sort, axis=0)
+    order = []
+    for i in range(p):
+        col = B_argsort[:, i]
+        available_id = ~np.isin(B_argsort[:, i], order)
+        j = 0
+        while not available_id[j]:
+            j += 1
+        order.append(col[j])
+    return order
