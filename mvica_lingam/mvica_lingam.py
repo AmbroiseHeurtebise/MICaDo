@@ -60,11 +60,11 @@ def mvica_lingam(
     
     # Step 1: use a multiview ICA algorithm
     if ica_algo == "shica_ml":
-        W, Sigmas, S = shica_ml(X, max_iter=max_iter, tol=tol)
+        W, Sigmas, S_avg = shica_ml(X, max_iter=max_iter, tol=tol)
     elif ica_algo == "shica_j":
-        W, Sigmas, S = shica_j(X, max_iter=max_iter, tol=tol)
+        W, Sigmas, S_avg = shica_j(X, max_iter=max_iter, tol=tol)
     elif ica_algo == "multiviewica":
-        _, W, S = multiviewica(
+        _, W, S_avg = multiviewica(
             X, max_iter=max_iter, tol=tol, random_state=random_state)
         Sigmas = np.ones((m, p))
     else:
@@ -77,10 +77,12 @@ def mvica_lingam(
 
     # Step 3: scaling
     D = np.array([np.diag(QW[i]) for i in range(m)])[:, :, np.newaxis]  # shape (m, p, 1)
-    W_estimates = QW / D
+    DQW = QW / D
 
     # Step 4: causal effects
-    B_estimates = np.array([np.eye(p)] * m) - W_estimates
+    B = np.array([np.eye(p)] * m) - DQW
 
     # Step 5: estimate the causal order
-    ...
+    P = ...
+    
+    return P, B, Sigmas, S_avg
