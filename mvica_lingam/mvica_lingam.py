@@ -81,7 +81,7 @@ def mvica_lingam(
     DQW = QW / D
 
     # Step 4: causal effects
-    B = np.array([np.eye(p)] * m) - DQW
+    B = np.array([np.eye(p)] * m) - DQW  # B is not yet lower triangular
 
     # Step 5: estimate the causal order
     P = ...
