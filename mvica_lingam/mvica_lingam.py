@@ -72,11 +72,12 @@ def mvica_lingam(
             "ica_algo should be either 'shica_ml', 'shica_j', or 'multiviewica'")
     
     # Step 2: find permutation Q
-    row_index, col_index = linear_sum_assignment(np.sum(1 / np.abs(W), axis=0))
-    QW = ...
+    W_inv = 1 / np.sum([np.abs(Wi.T) for Wi in W], axis=0)  # shape (p, p)
+    _, index = linear_sum_assignment(W_inv)
+    QW = np.array([Wi[index] for Wi in W])
 
     # Step 3: scaling
-    D = np.array([np.diag(QW[i]) for i in range(m)])[:, :, np.newaxis]  # shape (m, p, 1)
+    D = np.array([np.diag(Wi) for Wi in QW])[:, :, np.newaxis]  # shape (m, p, 1)
     DQW = QW / D
 
     # Step 4: causal effects
