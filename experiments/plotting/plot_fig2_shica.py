@@ -6,7 +6,7 @@ import seaborn as sns
 
 # parameters 
 nb_seeds = 50
-nb_gaussian_sources_list = [0, 2, 4]
+nb_gaussian_sources_list = [4, 0, 2]
 errors = ["amari_distance", "error_P", "error_B"]
 algo_list = ["multiviewica", "shica_j", "shica_ml"]
 
@@ -21,32 +21,37 @@ prop_cycle = plt.rcParams['axes.prop_cycle']
 colors = prop_cycle.by_key()['color']
 
 # subplots
-fig, axes = plt.subplots(3, 3, figsize=(12, 10))
+fig, axes = plt.subplots(3, 3, figsize=(12, 8))
 for i, ax in enumerate(axes.flat):
     # number of Gaussian sources; one for each of the 3 columns
-    nb_gaussian_sources = nb_gaussian_sources_list[i // 3]
+    nb_gaussian_sources = nb_gaussian_sources_list[i % 3]
     data = df[df["nb_gaussian_sources"] == nb_gaussian_sources]
     # error; one for each of the 3 rows
-    y = errors[i % 3]
+    y = errors[i // 3]
     # subplot
     for j, algo in enumerate(algo_list):
         sns.lineplot(
-            data=data, x="n", y=y, linewidth=2.5,
-            label=algo, estimator=np.median, c=colors[j])
+            data=data, x="n", y=y, linewidth=2.5, label=algo, estimator=np.median,
+            c=colors[j], ax=ax)
     ax.set_xscale("log")
-    ax.set_yscale("log")
-    if i // 3 == 0:
-        ax.set_ylabel(errors[i % 3])
+    if i // 3 != 1:
+        ax.set_yscale("log")
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+    if i % 3 == 0:
+        ax.set_ylabel(errors[i // 3])
     ax.grid()
-    ax.legend_.remove()
+    ax.set_title(f"figure {i}")
+    ax.get_legend().remove()
 fig.supxlabel("Number of samples")
+plt.tight_layout()
 # legend
 handles, labels = ax.get_legend_handles_labels()
 fig.legend(
-    handles, labels, bbox_to_anchor=(0.5, 1.05), loc="center",
+    handles, labels, bbox_to_anchor=(0.5, 1.03), loc="center",
     ncol=3, borderaxespad=0.)
 
 # save figure
 figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/experiments/figures/"
-plt.savefig(figures_dir + "fig2_shica.pdf")
+plt.savefig(figures_dir + "fig2_shica.pdf", bbox_inches="tight")
 plt.show()
