@@ -83,7 +83,8 @@ def mvica_lingam(
     # Step 4: causal effects
     B_hat = np.array([np.eye(p)] * m) - DQW  # B_hat is not yet lower triangular
 
-    # Step 5: estimate the causal order
+    # Step 5: estimate the causal order with a simple method 
+    # (instead of with least squares regression)
     order = find_order(B_hat)
     P = np.eye(p)[order]
     B = P @ B_hat @ P.T
