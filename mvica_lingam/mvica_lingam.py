@@ -55,6 +55,9 @@ def mvica_lingam(
 
     S_avg: ndarray, shape (n_components, n_samples)
         Source estimates.
+
+    W: ndarray, shape (n_views, n_components, n_components)
+        Unmixing matrices found by the multiview ICA algorithm.
     """
     m, p, n = X.shape
     
@@ -89,7 +92,7 @@ def mvica_lingam(
     P = np.eye(p)[order]
     B = P @ B_hat @ P.T
     
-    return P, B, Sigmas, S_avg
+    return P, B, Sigmas, S_avg, W
 
 
 def find_order(B_hat):
