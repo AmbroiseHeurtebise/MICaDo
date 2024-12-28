@@ -71,10 +71,10 @@ p = 4
 N_JOBS = 10
 
 # varying parameters
-nb_gaussian_sources_list = [2]
-nb_seeds = 1
+nb_gaussian_sources_list = [0, 2, 4]
+nb_seeds = 50
 random_state_list = np.arange(nb_seeds)
-n_list = np.logspace(2, 4, 3, dtype=int)
+n_list = np.logspace(2, 4, 21, dtype=int)
 algo_list = ["multiviewica", "shica_j", "shica_ml"]
 
 # run experiment
