@@ -4,10 +4,21 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
+# matplotlib style
+rc = {
+    "font.size": 16,
+    "xtick.labelsize": 16,
+    "ytick.labelsize": 16,
+    "font.family": "serif",
+}
+plt.rcParams.update(rc)
+
 # parameters 
 nb_seeds = 50
 nb_gaussian_sources_list = [4, 0, 2]
-errors = ["amari_distance", "error_P", "error_B"]
+errors = ["amari_distance", "error_B", "error_P"]
+error_names = ["Amari distance", "Error on B", "Error rate on P"]
+titles = ["Gaussian", "Non-Gaussian", "Half-G / Half-NG"]
 algo_list = ["multiviewica", "shica_j", "shica_ml"]
 
 # read dataframe
@@ -21,7 +32,7 @@ prop_cycle = plt.rcParams['axes.prop_cycle']
 colors = prop_cycle.by_key()['color']
 
 # subplots
-fig, axes = plt.subplots(3, 3, figsize=(12, 8))
+fig, axes = plt.subplots(3, 3, figsize=(12, 8), sharey="row")
 for i, ax in enumerate(axes.flat):
     # number of Gaussian sources; one for each of the 3 columns
     nb_gaussian_sources = nb_gaussian_sources_list[i % 3]
@@ -29,26 +40,36 @@ for i, ax in enumerate(axes.flat):
     # error; one for each of the 3 rows
     y = errors[i // 3]
     # subplot
-    for j, algo in enumerate(algo_list):
+    if i // 3 != 2:
         sns.lineplot(
-            data=data, x="n", y=y, linewidth=2.5, label=algo, estimator=np.median,
-            c=colors[j], ax=ax)
+            data=data, x="n", y=y, linewidth=2.5, hue="ica_algo", estimator=np.median,
+            ax=ax)
+    else:
+        data_avg = data.groupby(["ica_algo", "n"], as_index=False).mean()
+        sns.lineplot(data=data_avg, x="n", y=y, linewidth=2.5, hue="ica_algo", ax=ax)
+    # set axis in logscale, except for the yaxis of the middle row
     ax.set_xscale("log")
-    if i // 3 != 1:
+    if i // 3 != 2:
         ax.set_yscale("log")
+    # ylabel
     ax.set_xlabel("")
     ax.set_ylabel("")
     if i % 3 == 0:
-        ax.set_ylabel(errors[i // 3])
+        ax.set_ylabel(error_names[i // 3])
+    # title, grid, and legend
+    if i // 3 == 0:
+        ax.set_title(titles[i])
     ax.grid()
-    ax.set_title(f"figure {i}")
     ax.get_legend().remove()
-fig.supxlabel("Number of samples")
+label = fig.supxlabel("Number of samples")
+label.set_position((0.5, 0.055))
+plt.gcf().align_labels()
 plt.tight_layout()
 # legend
 handles, labels = ax.get_legend_handles_labels()
+labels = ['MultiviewICA', 'ShICA-J', 'ShICA-ML']
 fig.legend(
-    handles, labels, bbox_to_anchor=(0.5, 1.03), loc="center",
+    handles, labels, bbox_to_anchor=(0.5, 1.02), loc="center",
     ncol=3, borderaxespad=0.)
 
 # save figure
