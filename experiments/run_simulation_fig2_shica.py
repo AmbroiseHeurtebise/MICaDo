@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from itertools import product
 from joblib import Parallel, delayed
+from picard import amari_distance
 from mvica_lingam.mvica_lingam import mvica_lingam
 
 
@@ -34,21 +35,22 @@ def sample_data(m, p, n, nb_gaussian_sources=0, rng=None):
     # observations
     X = np.array([Ai @ Si for Ai, Si in zip(A, S + N)])
 
-    return X, P, B
+    return X, P, B, A
 
 
 def run_experiment(m, p, n, nb_gaussian_sources, random_state, ica_algo):
     rng = np.random.RandomState(random_state)
     # generate observations X, causal order P, and causal effects B
-    X, P, B = sample_data(m, p, n, nb_gaussian_sources, rng)
+    X, P, B, A = sample_data(m, p, n, nb_gaussian_sources, rng)
 
     # apply our main function to retrieve P and B
-    P_estimate, B_estimates, _, _ = mvica_lingam(
+    P_estimate, B_estimates, _, _, W_estimates = mvica_lingam(
         X, ica_algo=ica_algo, random_state=random_state)
     
     # errors
     error_P = 1 - (P_estimate == P).all()
     error_B = np.mean((B_estimates - B) ** 2)
+    amari = np.mean([amari_distance(Wi, Ai) for Wi, Ai in zip(W_estimates, A)])
     
     # output
     output = {
@@ -58,6 +60,7 @@ def run_experiment(m, p, n, nb_gaussian_sources, random_state, ica_algo):
         "random_state": random_state,
         "error_P": error_P,
         "error_B": error_B,
+        "amari_distance": amari,
     }
     return output
 
@@ -65,11 +68,11 @@ def run_experiment(m, p, n, nb_gaussian_sources, random_state, ica_algo):
 # fixed parameters
 m = 5
 p = 4
-N_JOBS = 2
+N_JOBS = 10
 
 # varying parameters
 nb_gaussian_sources_list = [2]
-nb_seeds = 2
+nb_seeds = 1
 random_state_list = np.arange(nb_seeds)
 n_list = np.logspace(2, 4, 3, dtype=int)
 algo_list = ["multiviewica", "shica_j", "shica_ml"]
@@ -94,8 +97,8 @@ df = pd.DataFrame(dict_res)
 print(df)
 
 # save dataframe
-# results_dir = "/storage/store2/work/aheurteb/mvica_lingam/experiments/results/fig2_shica/"
-results_dir = "/Users/ambroiseheurtebise/Desktop/mvica_lingam/experiments/results/fig2_shica/"
+results_dir = "/storage/store2/work/aheurteb/mvica_lingam/experiments/results/fig2_shica/"
+# results_dir = "/Users/ambroiseheurtebise/Desktop/mvica_lingam/experiments/results/fig2_shica/"
 save_name = f"DataFrame_with_{nb_seeds}_seeds"
 save_path = results_dir + save_name
 df.to_csv(save_path, index=False)
