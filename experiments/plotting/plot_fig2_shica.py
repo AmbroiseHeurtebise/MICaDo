@@ -5,10 +5,11 @@ import seaborn as sns
 
 
 # matplotlib style
+fontsize = 15
 rc = {
-    "font.size": 16,
-    "xtick.labelsize": 16,
-    "ytick.labelsize": 16,
+    "font.size": fontsize,
+    "xtick.labelsize": fontsize,
+    "ytick.labelsize": fontsize,
     "font.family": "serif",
 }
 plt.rcParams.update(rc)
@@ -32,7 +33,7 @@ prop_cycle = plt.rcParams['axes.prop_cycle']
 colors = prop_cycle.by_key()['color']
 
 # subplots
-fig, axes = plt.subplots(3, 3, figsize=(12, 8), sharey="row")
+fig, axes = plt.subplots(3, 3, figsize=(12, 6), sharex="col", sharey="row")
 for i, ax in enumerate(axes.flat):
     # number of Gaussian sources; one for each of the 3 columns
     nb_gaussian_sources = nb_gaussian_sources_list[i % 3]
@@ -43,7 +44,7 @@ for i, ax in enumerate(axes.flat):
     if i // 3 != 2:
         sns.lineplot(
             data=data, x="n", y=y, linewidth=2.5, hue="ica_algo", estimator=np.median,
-            ax=ax)
+            ax=ax, errorbar=lambda x: (np.quantile(x, 0.1), np.quantile(x, 0.9)))
     else:
         data_avg = data.groupby(["ica_algo", "n"], as_index=False).mean()
         sns.lineplot(data=data_avg, x="n", y=y, linewidth=2.5, hue="ica_algo", ax=ax)
@@ -58,19 +59,20 @@ for i, ax in enumerate(axes.flat):
         ax.set_ylabel(error_names[i // 3])
     # title, grid, and legend
     if i // 3 == 0:
-        ax.set_title(titles[i])
-    ax.grid()
+        ax.set_title(titles[i], fontsize=fontsize)
+    ax.grid(which='both', linewidth=0.5, alpha=0.5)
     ax.get_legend().remove()
-label = fig.supxlabel("Number of samples")
+label = fig.supxlabel("Number of samples", fontsize=fontsize)
 label.set_position((0.5, 0.055))
 plt.gcf().align_labels()
 plt.tight_layout()
+plt.subplots_adjust(hspace=0.15)
 # legend
 handles, labels = ax.get_legend_handles_labels()
 labels = ['MultiviewICA', 'ShICA-J', 'ShICA-ML']
 fig.legend(
     handles, labels, bbox_to_anchor=(0.5, 1.02), loc="center",
-    ncol=3, borderaxespad=0.)
+    ncol=3, borderaxespad=0., fontsize=fontsize)
 
 # save figure
 figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/experiments/figures/"
