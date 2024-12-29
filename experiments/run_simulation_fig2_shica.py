@@ -3,6 +3,7 @@ import pandas as pd
 from itertools import product
 from joblib import Parallel, delayed
 from picard import amari_distance
+import lingam
 from mvica_lingam.mvica_lingam import mvica_lingam
 
 
@@ -43,9 +44,24 @@ def run_experiment(m, p, n, nb_gaussian_sources, random_state, ica_algo):
     # generate observations X, causal order P, and causal effects B
     X, P, B, A = sample_data(m, p, n, nb_gaussian_sources, rng)
 
-    # apply our main function to retrieve P and B
-    P_estimate, B_estimates, _, _, W_estimates = mvica_lingam(
-        X, ica_algo=ica_algo, random_state=random_state)
+    # apply either our method or Multi Group DirectLiNGAM
+    if ica_algo in ["multiviewica", "shica_j", "shica_ml"]:
+        # apply our main function to retrieve P, B, and W
+        P_estimate, B_estimates, _, _, W_estimates = mvica_lingam(
+            X, ica_algo=ica_algo, random_state=random_state)
+    elif ica_algo == "multi_group_direct_lingam":
+        # apply Multi Group DirectLiNGAM to retrieve P, B, and W
+        model = lingam.MultiGroupDirectLiNGAM()
+        model.fit(list(np.swapaxes(X, 1, 2)))
+        # causal order P
+        P_estimate = np.eye(p)[model.causal_order_]
+        # causal effect matrices B
+        B_s_estimates = np.array(model.adjacency_matrices_)
+        B_estimates = P_estimate @ B_s_estimates @ P_estimate.T
+        # reconstruct what would be unmixing matrices W
+        W_estimates = P_estimate.T @ (np.eye(p) - B_estimates) @ P_estimate
+    else:
+        raise ValueError("Wrong ica_algo.")
     
     # errors
     error_P = 1 - (P_estimate == P).all()
@@ -75,7 +91,7 @@ nb_gaussian_sources_list = [0, 2, 4]
 nb_seeds = 50
 random_state_list = np.arange(nb_seeds)
 n_list = np.logspace(2, 4, 21, dtype=int)
-algo_list = ["multiviewica", "shica_j", "shica_ml"]
+algo_list = ["multi_group_direct_lingam"]  # ["multiviewica", "shica_j", "shica_ml"]
 
 # run experiment
 nb_expes = len(nb_gaussian_sources_list) * len(random_state_list) * len(n_list) * len(algo_list)
@@ -99,7 +115,7 @@ print(df)
 # save dataframe
 results_dir = "/storage/store2/work/aheurteb/mvica_lingam/experiments/results/fig2_shica/"
 # results_dir = "/Users/ambroiseheurtebise/Desktop/mvica_lingam/experiments/results/fig2_shica/"
-save_name = f"DataFrame_with_{nb_seeds}_seeds"
+save_name = f"DataFrame_with_{nb_seeds}_seeds_multi_group_direct_lingam"
 save_path = results_dir + save_name
 df.to_csv(save_path, index=False)
 print("\n####################################### End #######################################")
