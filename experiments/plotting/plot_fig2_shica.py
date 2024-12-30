@@ -76,7 +76,7 @@ plt.tight_layout()
 plt.subplots_adjust(hspace=0.15)
 # legend
 handles, labels = ax.get_legend_handles_labels()
-labels = ['MultiviewICA', 'ShICA-J', 'ShICA-ML', 'MultiGroupDirectLiNGAM']
+labels = ['MVICA-LiNGAM', 'ShICA-J-LiNGAM', 'ShICA-ML-LiNGAM', 'MultiGroupDirectLiNGAM']
 fig.legend(
     handles, labels, bbox_to_anchor=(0.5, 1.02), loc="center",
     ncol=len(labels), borderaxespad=0., fontsize=fontsize)
