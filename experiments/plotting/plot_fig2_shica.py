@@ -22,6 +22,7 @@ nb_gaussian_sources_list = [4, 0, 2]
 errors = ["amari_distance", "error_B", "error_P"]
 error_names = ["Amari distance", "Error on B", "Error rate on P"]
 titles = ["Gaussian", "Non-Gaussian", "Half-G / Half-NG"]
+estimator = "mean"
 
 # read dataframe
 results_dir = "/storage/store2/work/aheurteb/mvica_lingam/experiments/results/fig2_shica/"
@@ -43,11 +44,16 @@ for i, ax in enumerate(axes.flat):
     y = errors[i // 3]
     # subplot
     if i // 3 != 2:
-        # sns.lineplot(
-        #     data=data, x="n", y=y, linewidth=2.5, hue="ica_algo", estimator=np.mean,
-        #     ax=ax, errorbar=lambda x: (np.quantile(x, 0.05), np.quantile(x, 0.95)))
-        sns.lineplot(
-            data=data, x="n", y=y, linewidth=2.5, hue="ica_algo", ax=ax, errorbar=('ci', 99))
+        if estimator == "median":
+            sns.lineplot(
+                data=data, x="n", y=y, linewidth=2.5, hue="ica_algo", estimator=np.mean,
+                ax=ax, errorbar=lambda x: (np.quantile(x, 0.01), np.quantile(x, 0.99)))
+        elif estimator == "mean":
+            sns.lineplot(
+                data=data, x="n", y=y, linewidth=2.5, hue="ica_algo", ax=ax, errorbar=('ci', 99))
+        else:
+            raise ValueError(
+                "The parameter 'estimator' should be either 'median' or 'mean'.")
     else:
         data_avg = data.groupby(["ica_algo", "n"], as_index=False).mean()
         data_avg_sorted = data_avg.sort_values(
