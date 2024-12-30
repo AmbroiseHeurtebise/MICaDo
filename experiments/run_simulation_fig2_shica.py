@@ -91,7 +91,7 @@ nb_gaussian_sources_list = [0, 2, 4]
 nb_seeds = 50
 random_state_list = np.arange(nb_seeds)
 n_list = np.logspace(2, 4, 21, dtype=int)
-algo_list = ["multi_group_direct_lingam"]  # ["multiviewica", "shica_j", "shica_ml"]
+algo_list = ["multiviewica", "shica_j", "shica_ml", "multi_group_direct_lingam"]
 
 # run experiment
 nb_expes = len(nb_gaussian_sources_list) * len(random_state_list) * len(n_list) * len(algo_list)
@@ -115,7 +115,7 @@ print(df)
 # save dataframe
 results_dir = "/storage/store2/work/aheurteb/mvica_lingam/experiments/results/fig2_shica/"
 # results_dir = "/Users/ambroiseheurtebise/Desktop/mvica_lingam/experiments/results/fig2_shica/"
-save_name = f"DataFrame_with_{nb_seeds}_seeds_multi_group_direct_lingam"
+save_name = f"DataFrame_with_{nb_seeds}_seeds"
 save_path = results_dir + save_name
 df.to_csv(save_path, index=False)
 print("\n####################################### End #######################################")
