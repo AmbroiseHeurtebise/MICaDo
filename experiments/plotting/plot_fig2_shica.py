@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning, module="seaborn")
 
 
 # matplotlib style
@@ -20,7 +22,6 @@ nb_gaussian_sources_list = [4, 0, 2]
 errors = ["amari_distance", "error_B", "error_P"]
 error_names = ["Amari distance", "Error on B", "Error rate on P"]
 titles = ["Gaussian", "Non-Gaussian", "Half-G / Half-NG"]
-algo_list = ["multiviewica", "shica_j", "shica_ml"]
 
 # read dataframe
 results_dir = "/storage/store2/work/aheurteb/mvica_lingam/experiments/results/fig2_shica/"
@@ -42,12 +43,18 @@ for i, ax in enumerate(axes.flat):
     y = errors[i // 3]
     # subplot
     if i // 3 != 2:
+        # sns.lineplot(
+        #     data=data, x="n", y=y, linewidth=2.5, hue="ica_algo", estimator=np.mean,
+        #     ax=ax, errorbar=lambda x: (np.quantile(x, 0.05), np.quantile(x, 0.95)))
         sns.lineplot(
-            data=data, x="n", y=y, linewidth=2.5, hue="ica_algo", estimator=np.median,
-            ax=ax, errorbar=lambda x: (np.quantile(x, 0.1), np.quantile(x, 0.9)))
+            data=data, x="n", y=y, linewidth=2.5, hue="ica_algo", ax=ax, errorbar=('ci', 99))
     else:
         data_avg = data.groupby(["ica_algo", "n"], as_index=False).mean()
-        sns.lineplot(data=data_avg, x="n", y=y, linewidth=2.5, hue="ica_algo", ax=ax)
+        data_avg_sorted = data_avg.sort_values(
+            by="ica_algo", key=lambda x: x.map(
+                {"multiviewica": 0, "shica_j": 1, "shica_ml": 2,
+                 "multi_group_direct_lingam": 3}))
+        sns.lineplot(data=data_avg_sorted, x="n", y=y, linewidth=2.5, hue="ica_algo", ax=ax)
     # set axis in logscale, except for the yaxis of the middle row
     ax.set_xscale("log")
     if i // 3 != 2:
@@ -69,10 +76,10 @@ plt.tight_layout()
 plt.subplots_adjust(hspace=0.15)
 # legend
 handles, labels = ax.get_legend_handles_labels()
-labels = ['MultiviewICA', 'ShICA-J', 'ShICA-ML']
+labels = ['MultiviewICA', 'ShICA-J', 'ShICA-ML', 'MultiGroupDirectLiNGAM']
 fig.legend(
     handles, labels, bbox_to_anchor=(0.5, 1.02), loc="center",
-    ncol=3, borderaxespad=0., fontsize=fontsize)
+    ncol=len(labels), borderaxespad=0., fontsize=fontsize)
 
 # save figure
 figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/experiments/figures/"
