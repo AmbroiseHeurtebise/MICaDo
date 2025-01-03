@@ -44,7 +44,7 @@ def run_experiment(m, p, n, nb_gaussian_sources, random_state, ica_algo):
     # generate observations X, causal order P, and causal effects B
     X, P, B, A = sample_data(m, p, n, nb_gaussian_sources, rng)
 
-    # apply either our method or Multi Group DirectLiNGAM
+    # apply either our method, Multi Group DirectLiNGAM, or LiNGAM
     if ica_algo in ["multiviewica", "shica_j", "shica_ml"]:
         # apply our main function to retrieve P, B, and W
         P_estimate, B_estimates, _, _, W_estimates = mvica_lingam(
@@ -60,11 +60,36 @@ def run_experiment(m, p, n, nb_gaussian_sources, random_state, ica_algo):
         B_estimates = P_estimate @ B_s_estimates @ P_estimate.T
         # reconstruct what would be unmixing matrices W
         W_estimates = P_estimate.T @ (np.eye(p) - B_estimates) @ P_estimate
+    elif ica_algo == "lingam":
+        # apply LiNGAM to retrieve P, B, and W
+        P_estimates = []
+        B_s_estimates = []
+        B_estimates = []
+        model = lingam.ICALiNGAM()
+        for i in range(m):
+            model.fit(np.swapaxes(X[i], 0, 1))    
+            # causal order P
+            P_estimate = np.eye(p)[model.causal_order_]
+            P_estimates.append(P_estimate)
+            # causal effect matrix B
+            B_s_estimate = np.array(model._adjacency_matrix)
+            B_s_estimates.append(B_s_estimate)
+            B_estimate = P_estimate @ B_s_estimate @ P_estimate.T
+            B_estimates.append(B_estimate)
+        P_estimates = np.array(P_estimates)  # shape (m, p, p) and not (p, p)
+        B_s_estimates = np.array(B_s_estimates)
+        B_estimates = np.array(B_estimates)
+        # reconstruct unmixing matrices W
+        W_estimates = np.array(
+            [Pi.T @ I_Bi @ Pi for Pi, I_Bi in zip(P_estimates, np.eye(p) - B_estimates)])
     else:
         raise ValueError("Wrong ica_algo.")
     
     # errors
-    error_P = 1 - (P_estimate == P).all()
+    if ica_algo != "lingam":
+        error_P = 1 - (P_estimate == P).all()
+    else:
+        error_P = np.mean([1 - (Pi == P).all() for Pi in P_estimates])
     error_B = np.mean((B_estimates - B) ** 2)
     amari = np.mean([amari_distance(Wi, Ai) for Wi, Ai in zip(W_estimates, A)])
     
@@ -91,7 +116,7 @@ nb_gaussian_sources_list = [0, 2, 4]
 nb_seeds = 50
 random_state_list = np.arange(nb_seeds)
 n_list = np.logspace(2, 4, 21, dtype=int)
-algo_list = ["multiviewica", "shica_j", "shica_ml", "multi_group_direct_lingam"]
+algo_list = ["lingam"]  # ["multiviewica", "shica_j", "shica_ml", "multi_group_direct_lingam", "lingam"]
 
 # run experiment
 nb_expes = len(nb_gaussian_sources_list) * len(random_state_list) * len(n_list) * len(algo_list)
@@ -115,7 +140,7 @@ print(df)
 # save dataframe
 results_dir = "/storage/store2/work/aheurteb/mvica_lingam/experiments/results/fig2_shica/"
 # results_dir = "/Users/ambroiseheurtebise/Desktop/mvica_lingam/experiments/results/fig2_shica/"
-save_name = f"DataFrame_with_{nb_seeds}_seeds"
+save_name = f"DataFrame_with_{nb_seeds}_seeds_lingam"
 save_path = results_dir + save_name
 df.to_csv(save_path, index=False)
 print("\n####################################### End #######################################")
