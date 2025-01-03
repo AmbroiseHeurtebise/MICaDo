@@ -43,24 +43,13 @@ for i, ax in enumerate(axes.flat):
     # error; one for each of the 3 rows
     y = errors[i // 3]
     # subplot
-    if i // 3 != 2:
-        if estimator == "median":
-            sns.lineplot(
-                data=data, x="n", y=y, linewidth=2.5, hue="ica_algo", estimator=np.mean,
-                ax=ax, errorbar=lambda x: (np.quantile(x, 0.01), np.quantile(x, 0.99)))
-        elif estimator == "mean":
-            sns.lineplot(
-                data=data, x="n", y=y, linewidth=2.5, hue="ica_algo", ax=ax, errorbar=('ci', 99))
-        else:
-            raise ValueError(
-                "The parameter 'estimator' should be either 'median' or 'mean'.")
+    if i // 3 != 2 and estimator == "median":
+        sns.lineplot(
+            data=data, x="n", y=y, linewidth=2.5, hue="ica_algo", estimator=np.mean,
+            ax=ax, errorbar=lambda x: (np.quantile(x, 0.025), np.quantile(x, 0.975)))
     else:
-        data_avg = data.groupby(["ica_algo", "n"], as_index=False).mean()
-        data_avg_sorted = data_avg.sort_values(
-            by="ica_algo", key=lambda x: x.map(
-                {"multiviewica": 0, "shica_j": 1, "shica_ml": 2,
-                 "multi_group_direct_lingam": 3}))
-        sns.lineplot(data=data_avg_sorted, x="n", y=y, linewidth=2.5, hue="ica_algo", ax=ax)
+        sns.lineplot(
+            data=data, x="n", y=y, linewidth=2.5, hue="ica_algo", ax=ax, errorbar=('ci', 95))
     # set axis in logscale, except for the yaxis of the middle row
     ax.set_xscale("log")
     if i // 3 != 2:
