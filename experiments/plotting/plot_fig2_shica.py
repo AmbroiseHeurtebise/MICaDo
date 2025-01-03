@@ -23,6 +23,9 @@ errors = ["amari_distance", "error_B", "error_P"]
 error_names = ["Amari distance", "Error on B", "Error rate on P"]
 titles = ["Gaussian", "Non-Gaussian", "Half-G / Half-NG"]
 estimator = "mean"
+labels = [
+    'MVICA-LiNGAM', 'ShICA-J-LiNGAM', 'ShICA-ML-LiNGAM', 'MultiGroupDirectLiNGAM',
+    'LiNGAM']
 
 # read dataframe
 results_dir = "/storage/store2/work/aheurteb/mvica_lingam/experiments/results/fig2_shica/"
@@ -74,11 +77,10 @@ plt.gcf().align_labels()
 plt.tight_layout()
 plt.subplots_adjust(hspace=0.15)
 # legend
-handles, labels = ax.get_legend_handles_labels()
-labels = ['MVICA-LiNGAM', 'ShICA-J-LiNGAM', 'ShICA-ML-LiNGAM', 'MultiGroupDirectLiNGAM']
+handles, _ = ax.get_legend_handles_labels()
 fig.legend(
-    handles, labels, bbox_to_anchor=(0.5, 1.02), loc="center",
-    ncol=len(labels), borderaxespad=0., fontsize=fontsize)
+    handles, labels, bbox_to_anchor=(0.5, 1.05), loc="center",
+    ncol=3, borderaxespad=0., fontsize=fontsize)
 
 # save figure
 figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/experiments/figures/"
