@@ -110,7 +110,7 @@ def run_experiment(m, p, n, noise_level, nb_gaussian_sources, random_state, ica_
 m = 5
 p = 4
 n = 1000
-N_JOBS = 10
+N_JOBS = 5
 
 # varying parameters
 nb_gaussian_sources_list = [0, 2, 4]
