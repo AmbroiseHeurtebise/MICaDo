@@ -114,7 +114,7 @@ N_JOBS = 5
 
 # varying parameters
 nb_gaussian_sources_list = [0, 2, 4]
-nb_seeds = 10
+nb_seeds = 50
 random_state_list = np.arange(nb_seeds)
 noise_level_list = np.logspace(-2, 2, 21)
 algo_list = ["multiviewica", "shica_j", "shica_ml", "multi_group_direct_lingam", "lingam"]

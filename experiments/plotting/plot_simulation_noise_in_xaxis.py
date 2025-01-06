@@ -18,8 +18,8 @@ plt.rcParams.update(rc)
 # parameters 
 nb_seeds = 10
 nb_gaussian_sources_list = [4, 0, 2]
-error = "error_B"  # ["amari_distance", "error_B", "error_P"]
-error_name = "Error on B"  # ["Amari distance", "Error on B", "Error rate on P"]
+error = "error_P"  # ["amari_distance", "error_B", "error_P"]
+error_name = "Error rate on P"  # ["Amari distance", "Error on B", "Error rate on P"]
 titles = ["Gaussian", "Non-Gaussian", "Half-G / Half-NG"]
 labels = [
     'MVICA-LiNGAM', 'ShICA-J-LiNGAM', 'ShICA-ML-LiNGAM', 'MultiGroupDirectLiNGAM',
