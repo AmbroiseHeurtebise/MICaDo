@@ -33,10 +33,6 @@ save_name = f"DataFrame_with_{nb_seeds}_seeds"
 save_path = results_dir + save_name
 df = pd.read_csv(save_path)
 
-# colors
-prop_cycle = plt.rcParams['axes.prop_cycle']
-colors = prop_cycle.by_key()['color']
-
 # subplots
 fig, axes = plt.subplots(3, 3, figsize=(12, 6), sharex="col", sharey="row")
 for i, ax in enumerate(axes.flat):
