@@ -116,9 +116,7 @@ def find_order(B_hat):
     order = []
     for i in range(p):
         col = B_argsort[:, i]
-        available_id = ~np.isin(B_argsort[:, i], order)
-        j = 0
-        while not available_id[j]:
-            j += 1
-        order.append(col[j])
+        available_id = ~np.isin(col, order)
+        first_id = np.argmax(available_id)
+        order.append(col[first_id])
     return order
