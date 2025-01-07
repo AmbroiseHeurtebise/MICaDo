@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
@@ -16,11 +17,12 @@ rc = {
 plt.rcParams.update(rc)
 
 # parameters 
-nb_seeds = 10
+nb_seeds = 50
 nb_gaussian_sources_list = [4, 0, 2]
-error = "error_P"  # ["amari_distance", "error_B", "error_P"]
-error_name = "Error rate on P"  # ["Amari distance", "Error on B", "Error rate on P"]
+errors = ["amari_distance", "error_B", "error_P"]
+error_names = ["Amari distance", "Error on B", "Error rate on P"]
 titles = ["Gaussian", "Non-Gaussian", "Half-G / Half-NG"]
+estimator = "mean"
 labels = [
     'MVICA-LiNGAM', 'ShICA-J-LiNGAM', 'ShICA-ML-LiNGAM', 'MultiGroupDirectLiNGAM',
     'LiNGAM']
@@ -32,36 +34,49 @@ save_path = results_dir + save_name
 df = pd.read_csv(save_path)
 
 # subplots
-fig, axes = plt.subplots(1, 3, figsize=(12, 3), sharey="row")
+fig, axes = plt.subplots(3, 3, figsize=(12, 6), sharex="col", sharey="row")
 for i, ax in enumerate(axes.flat):
     # number of Gaussian sources; one for each of the 3 columns
     nb_gaussian_sources = nb_gaussian_sources_list[i % 3]
     data = df[df["nb_gaussian_sources"] == nb_gaussian_sources]
+    # error; one for each of the 3 rows
+    y = errors[i // 3]
     # subplot
-    sns.lineplot(
-        data=data, x="noise_level", y=error, linewidth=2.5, hue="ica_algo", ax=ax, errorbar=('ci', 95))
+    if i // 3 != 2 and estimator == "median":
+        sns.lineplot(
+            data=data, x="noise_level", y=y, linewidth=2.5, hue="ica_algo", estimator=np.mean,
+            ax=ax, errorbar=lambda x: (np.quantile(x, 0.025), np.quantile(x, 0.975)))
+    else:
+        sns.lineplot(
+            data=data, x="noise_level", y=y, linewidth=2.5, hue="ica_algo", ax=ax,
+            errorbar=('ci', 95))
+    # set axis in logscale, except for the yaxis of the middle row
     ax.set_xscale("log")
-    if error != "error_P":
+    if i // 3 != 2:
         ax.set_yscale("log")
-    if i == 0 and error == "error_B":
+    # correct ylim in the second row
+    if i == 3:
         ymin, ymax = ax.get_ylim()
         ax.set_ylim(ymin, 1e5)
+    # ylabel
     ax.set_xlabel("")
     ax.set_ylabel("")
-    if i == 0:
-        ax.set_ylabel(error_name)
+    if i % 3 == 0:
+        ax.set_ylabel(error_names[i // 3])
     # title, grid, and legend
-    ax.set_title(titles[i], fontsize=fontsize)
+    if i // 3 == 0:
+        ax.set_title(titles[i], fontsize=fontsize)
     ax.grid(which='both', linewidth=0.5, alpha=0.5)
     ax.get_legend().remove()
 label = fig.supxlabel("Noise level", fontsize=fontsize)
-label.set_position((0.5, 0.11))
+label.set_position((0.5, 0.055))
+plt.gcf().align_labels()
 plt.tight_layout()
 plt.subplots_adjust(hspace=0.15)
 # legend
 handles, _ = ax.get_legend_handles_labels()
 fig.legend(
-    handles, labels, bbox_to_anchor=(0.5, 1.09), loc="center",
+    handles, labels, bbox_to_anchor=(0.5, 1.05), loc="center",
     ncol=3, borderaxespad=0., fontsize=fontsize)
 
 # save figure
