@@ -1,0 +1,16 @@
+scipy
+numpy
+pandas
+itertools
+time
+joblib
+matplotlib
+seaborn
+warnings
+mne
+mne_bids
+jinja2
+lingam
+picard
+multiviewica
+shica
