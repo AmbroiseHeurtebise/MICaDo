@@ -9,7 +9,9 @@ seaborn
 warnings
 mne
 mne_bids
+mne_connectivity
 jinja2
+nibabel
 lingam
 picard
 multiviewica
