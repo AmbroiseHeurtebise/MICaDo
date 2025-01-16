@@ -9,12 +9,6 @@ import mne_connectivity
 from mne_bids import BIDSPath, read_raw_bids
 from mne.preprocessing import compute_proj_ecg, compute_proj_eog
 from mne.minimum_norm import apply_inverse_epochs, make_inverse_operator
-# # for 3D plots
-# import os
-# os.environ["PYVISTA_OFF_SCREEN"] = "true"
-# os.environ["PYVISTA_USE_OSMESA"] = "true"
-# os.environ["PYVISTA_RC_PARAMS"] = '{"use_panel": false}'
-# mne.viz.set_3d_backend("pyvista")
 
 # %%
 # Parameters
@@ -73,7 +67,7 @@ print(f"Sampling frequency: {sfreq} Hz.")
 go = False
 if go:
     raw.crop(0, 60).pick_types(meg=True, eeg=False).load_data().resample(80)
-    # I don't know how to make the following method work
+    # I don't know how to make the following method work, so I commented it
     # raw.apply_gradient_compensation(3)
     projs_ecg, _ = compute_proj_ecg(raw, n_grad=1, n_mag=2)
     eog_channels = mne.pick_types(raw.info, eog=True)
@@ -173,7 +167,7 @@ mean_time_course = np.mean(stcs_np, axis=(0, 1))
 plt.plot(stcs[0].times, mean_time_course)
 plt.xlabel("Time (s)")
 plt.ylabel("Mean amplitude")
-plt.title("Mean Time Course (over epochs and sources)")
+plt.title("Mean (over epochs and sources) Time Course")
 plt.show()
 
 # %%
@@ -206,16 +200,16 @@ print(f"Shape of label_ts: {np.array(label_ts).shape}.")
 # If plot_only_good == True, we only plot the best 10 time series.
 plot_only_good = False
 label_ts_avg = np.mean(label_ts, axis=0)
+# List of 10 (out of the 68) visually selected labels.
+label_idx_good = [1, 7, 11, 24, 28, 34, 36, 38, 40, 64]
+# Maybe also [19, 53, 58, 67] but their peaks are thinner.
 if plot_only_good:
-    # List of 10 (out of the 68) visually selected labels.
-    label_idx_good = [1, 7, 11, 24, 28, 34, 36, 38, 40, 64]
-    # Maybe also [19, 53, 58, 67] but their peaks are thinner.
     label_ts_avg_subset = label_ts_avg[label_idx_good]
     plt.plot(stcs[0].times, label_ts_avg_subset.T)
-    plt.title("Mean label time series (over epochs; only good labels)")
+    plt.title("Mean (over epochs) label time series (only good labels)")
 else:
     plt.plot(stcs[0].times, label_ts_avg.T)
-    plt.title("Mean label time series (over epochs)")
+    plt.title("Mean (over epochs) label time series")
 plt.xlabel("Time (s)")
 plt.ylabel("Mean amplitude")
 plt.show()
@@ -298,7 +292,6 @@ print(f"Shape of envelope_reduced: {envelope_reduced.shape}.")
 # Each batch contains time series from tmin=-5 to tmax=5.
 # I don't like the results because I expected a greater peak 
 # in the middle of each batch.
-# Question: do you think that we can use these data?
 plot_only_good = True
 if plot_only_good:
     plt.plot(envelope_concat[label_idx_good].T)
@@ -316,22 +309,6 @@ for i in range(n_batches+1):
 plt.xlabel("Batch")
 plt.ylabel("Mean amplitude")
 plt.show()
-
-# %%
-# Vizualize the cortical parcellation.
-Brain = mne.viz.get_brain_class()
-brain = Brain(
-    "fsaverage",
-    "lh",
-    "inflated",
-    subjects_dir=FREESURFER_DIR,
-    cortex="low_contrast",
-    background="white",
-    size=(800, 600),
-)
-brain.add_annotation("aparc")
-# brain.add_annotation("HCPMMP1")
-# aud_label = [label for label in labels if label.name == "L_A1_ROI-lh"][0]
-# brain.add_label(aud_label, borders=False)
+# Question: do you think that we can use these data?
 
 # %%
