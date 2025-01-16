@@ -4,11 +4,17 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import hilbert
-from mne_bids import BIDSPath, read_raw_bids
 import mne
+import mne_connectivity
+from mne_bids import BIDSPath, read_raw_bids
 from mne.preprocessing import compute_proj_ecg, compute_proj_eog
 from mne.minimum_norm import apply_inverse_epochs, make_inverse_operator
-import mne_connectivity
+# # for 3D plots
+# import os
+# os.environ["PYVISTA_OFF_SCREEN"] = "true"
+# os.environ["PYVISTA_USE_OSMESA"] = "true"
+# os.environ["PYVISTA_RC_PARAMS"] = '{"use_panel": false}'
+# mne.viz.set_3d_backend("pyvista")
 
 # %%
 # Parameters
@@ -167,7 +173,7 @@ mean_time_course = np.mean(stcs_np, axis=(0, 1))
 plt.plot(stcs[0].times, mean_time_course)
 plt.xlabel("Time (s)")
 plt.ylabel("Mean amplitude")
-plt.title("Source Time Course (2D)")
+plt.title("Mean Time Course (over epochs and sources)")
 plt.show()
 
 # %%
@@ -194,21 +200,22 @@ label_ts = mne.extract_label_time_course(
 print(f"Shape of label_ts: {np.array(label_ts).shape}.")
 
 # %%
-# Vizualize label time series (one curve per label in the parcellation).
+# Vizualize label time series.
+# We averaged over epochs, so there is one curve per label in the parcellation.
 # If plot_only_good == False, we plot the 68 time series.
-# If plot_only_good == True, we only plot the best 14 time series.
+# If plot_only_good == True, we only plot the best 10 time series.
 plot_only_good = False
 label_ts_avg = np.mean(label_ts, axis=0)
 if plot_only_good:
-    # Select 10 out of the 68 labels.
+    # List of 10 (out of the 68) visually selected labels.
     label_idx_good = [1, 7, 11, 24, 28, 34, 36, 38, 40, 64]
     # Maybe also [19, 53, 58, 67] but their peaks are thinner.
     label_ts_avg_subset = label_ts_avg[label_idx_good]
     plt.plot(stcs[0].times, label_ts_avg_subset.T)
-    plt.title("Good label time series (2D)")
+    plt.title("Mean label time series (over epochs; only good labels)")
 else:
     plt.plot(stcs[0].times, label_ts_avg.T)
-    plt.title("Label time series (2D)")
+    plt.title("Mean label time series (over epochs)")
 plt.xlabel("Time (s)")
 plt.ylabel("Mean amplitude")
 plt.show()
@@ -230,7 +237,8 @@ print(f"Shape of the envelope: {envelope.shape}.")
 
 # %%
 # Vizualize the average (over epochs) envelope (one curve per label in the parcellation).
-# Question: is it normal for the figure to look like this?
+# Question: is it normal for the figure to look like this,
+# especially with peaks at the edges of the figure?
 # If plot_only_good == False, we plot the 68 time series.
 # If plot_only_good == True, we only plot the best 10 time series.
 plot_only_good = True
@@ -238,10 +246,10 @@ envelope_avg = np.mean(envelope, axis=0)
 if plot_only_good:
     envelope_avg_subset = envelope_avg[label_idx_good]
     plt.plot(stcs[0].times, envelope_avg_subset.T)
-    plt.title("Good envelope time series (2D)")
+    plt.title("Mean envelope time series (over epochs; only good labels)")
 else:
     plt.plot(stcs[0].times, envelope_avg.T)
-    plt.title("Envelope time series (2D)")
+    plt.title("Mean envelope time series (over epochs)")
 plt.xlabel("Time (s)")
 plt.ylabel("Mean amplitude")
 plt.show()
@@ -269,6 +277,7 @@ def batch_average(envelope, n_batches):
         start = end
     return np.array(results)
 
+print(f"Shape of envelope: {envelope.shape}.")
 # Average by batch.
 envelope_batch_avg = batch_average(envelope, n_batches=n_batches)
 print(f"Shape of envelope_batch_avg: {envelope_batch_avg.shape}.")
@@ -293,10 +302,10 @@ print(f"Shape of envelope_reduced: {envelope_reduced.shape}.")
 plot_only_good = True
 if plot_only_good:
     plt.plot(envelope_concat[label_idx_good].T)
-    plt.title("Reduced envelope time series (2D) ; good indices")
+    plt.title("Reduced envelope time series (only good labels)")
 else:
     plt.plot(envelope_concat.T)
-    plt.title("Reduced envelope time series (2D)")
+    plt.title("Reduced envelope time series")
 batch_length = envelope_concat.shape[1] // n_batches
 tick_positions = batch_length * np.arange(n_batches) + batch_length // 2
 tick_labels = np.arange(n_batches)
@@ -324,4 +333,5 @@ brain.add_annotation("aparc")
 # brain.add_annotation("HCPMMP1")
 # aud_label = [label for label in labels if label.name == "L_A1_ROI-lh"][0]
 # brain.add_label(aud_label, borders=False)
+
 # %%
