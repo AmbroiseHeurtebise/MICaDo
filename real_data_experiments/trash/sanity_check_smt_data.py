@@ -11,11 +11,6 @@ from mne_bids import BIDSPath, read_raw_bids
 from mne.preprocessing import compute_proj_ecg, compute_proj_eog
 from mne.minimum_norm import apply_inverse_epochs, make_inverse_operator
 
-# %%
-# Parameters
-subject = "CC110033"
-n_batches = 4  # used to batch-average epochs
-sfreq_envelope = 10  # used to downsample envelope across timepoints dimension
 
 # %%
 # Paths
@@ -25,23 +20,45 @@ FREESURFER_DIR = DATA_DIR / "camcan-mne/freesurfer"
 PARTICIPANTS_FILE = BIDS_ROOT / "participants.tsv"
 SSS_CAL_FILE = DATA_DIR / "camcan-mne/Cam-CAN_sss_cal.dat"
 CT_SPARSE_FILE = DATA_DIR / "camcan-mne/Cam-CAN_ct_sparse.fif"
-# The file "fsaverage-ico-5-src.fif" has a better definition than "fsaverage-oct-5-src.fif"
 SRC = FREESURFER_DIR / "fsaverage/bem/fsaverage-ico-5-src.fif"
 TRANS_DIR = DATA_DIR / "camcan-mne/trans"
+
+# %%
+# Only keep a subset of participants
+# Get the list of the 354 participants who have a trans file
+participants = pd.read_csv(PARTICIPANTS_FILE, sep='\t', header=0)
+participants_names = participants['participant_id'].str.replace('sub-', '', regex=False).tolist()
+names_trans_available = [
+    name for name in participants_names 
+    if (TRANS_DIR / f"sub-{name}-trans.fif").exists()]
+participants_with_trans = participants[
+    participants['participant_id'].str.replace('sub-', '', regex=False).isin(
+        names_trans_available)]
+
+# Only keep participants with clean evoked data (40 out of the first 107)
+goods = [
+    'CC110033', 'CC120120', 'CC120182', 'CC120313', 'CC120376', 'CC120550', 'CC120727',
+    'CC120795', 'CC121106', 'CC121111', 'CC121144', 'CC121428', 'CC210051', 'CC210124',
+    'CC210519', 'CC210617', 'CC220151', 'CC220352', 'CC220506', 'CC220518', 'CC220843',
+    'CC220901', 'CC221031', 'CC221107', 'CC221220', 'CC221324', 'CC221352', 'CC221565',
+    'CC222264', 'CC310086', 'CC310129', 'CC310135', 'CC310361', 'CC310400', 'CC310450',
+    'CC310473', 'CC320160', 'CC320206', 'CC320218', 'CC320379']
+filtered_participants = participants_with_trans[
+    participants_with_trans['participant_id'].str.replace('sub-', '', regex=False).isin(
+        goods)]
+filtered_participants.head()
+
+# %%
+# Parameters
+subject = goods[0]
+n_batches = 10  # used to batch-average epochs
+sfreq_envelope = 10  # used to downsample envelope across timepoints dimension
+parcellation = "aparc"
+var_or_chatgpt = "ChatGPT"
+
+# %%
 trans = TRANS_DIR / f"sub-{subject}-trans.fif"
 bem = FREESURFER_DIR / f"{subject}/bem/{subject}-meg-bem.fif"
-
-# %%
-# Check that the subject has a trans file.
-# There are 356 subjects with a trans file at this path, out of the 643 subjects in total.
-if not trans.exists():
-    print("The ``trans`` file for this subject does not exist at this path. \
-        Choose another subject.")
-
-# %%
-# DataFrame of all participants
-participants = pd.read_csv(PARTICIPANTS_FILE, sep='\t', header=0)
-participants
 
 # %%
 # Read raw data of one participant
@@ -190,40 +207,68 @@ plt.title("Mean (over epochs and sources) Time Course")
 plt.show()
 
 # %%
-# Get labels.
-# Alex said that we should use the aparc_sub parcellation.
-parcellation = "aparc_sub"
-if parcellation == "aparc":
-    # Get aparc labels from subject.
-    labels = mne.read_labels_from_annot(
-        subject, "aparc", subjects_dir=FREESURFER_DIR)
-    # Unfortunately, because ``src`` comes from fsaverage, 
-    # we have to morph subject-specific labels to fsaverage.
-    morphed_labels = mne.morph_labels(
-        labels, subject_to="fsaverage", subject_from=subject,
-        subjects_dir=FREESURFER_DIR)
-elif parcellation == "aparc_sub":
-    # Get aparc_sub labels from fsaverage.
-    labels = mne.read_labels_from_annot(
-        "fsaverage", "aparc_sub", subjects_dir=FREESURFER_DIR, verbose=False)
-    # Among the 450 labels, 36 do not have vertices in the source space inv["src"].
-    # Indeed, src has 10242 vertices in each hemisphere, whereas inv["src"] only has 
-    # 8428 vertices in the left hemisphere and 7819 in the right hemisphere.
-    # In the following, we remove these 36 labels, so that 414 labels remain.
-    filtered_labels = [
-        label for label in labels
-        if (
-            (label.hemi == "lh" and len(set(label.vertices) & set(inv["src"][0]["vertno"])) > 0)
-            or (label.hemi == "rh" and len(set(label.vertices) & set(inv["src"][1]["vertno"])) > 0)
-        )
-    ]
+# Get labels from "fsaverage"
+labels = mne.read_labels_from_annot(
+    "fsaverage", parc=parcellation, subjects_dir=FREESURFER_DIR, verbose=False)
+
+# For some participants, there are a few labels that have no vertex in the 
+# source space inv["src"]. Indeed, inv["src"] has less vertices than src.
+# So, we remove the empty labels. This is especially true for "aparc_sub", 
+# but it also allows to remove 'unknown-lh' from "aparc".
+filtered_labels = [
+    label for label in labels
+    if (
+        (label.hemi == "lh" and len(set(label.vertices) & set(inv["src"][0]["vertno"])) > 0)
+        or (label.hemi == "rh" and len(set(label.vertices) & set(inv["src"][1]["vertno"])) > 0)
+    )
+]
+
+# Print missing labels, if any
+missing_labels_src = list(set(labels) - set(filtered_labels))
+print(f"Missing labels: {missing_labels_src}")
+
+# Select some interesting labels
+if var_or_chatgpt == "ChatGPT":
+    if parcellation == "aparc":
+        # 10 already chosen labels
+        label_names = [
+            'precentral-lh', 'postcentral-lh', 'parsopercularis-lh', 'transversetemporal-lh',
+            'pericalcarine-lh', 'precentral-rh', 'postcentral-rh', 'parsopercularis-rh',
+            'transversetemporal-rh', 'pericalcarine-rh']
+    elif parcellation == "aparc_sub":
+        # 18 already chosen labels
+        label_names = [
+            'precentral_1-lh', 'precentral_2-lh', 'postcentral_1-lh', 'postcentral_2-lh',
+            'paracentral_1-lh', 'superiorfrontal_1-lh', 'transversetemporal_1-lh',
+            'lateraloccipital_1-lh', 'frontalpole_1-lh', 'precentral_1-rh', 'precentral_2-rh',
+            'postcentral_1-rh', 'postcentral_2-rh', 'paracentral_1-rh', 'superiorfrontal_1-rh',
+            'transversetemporal_1-rh', 'lateraloccipital_1-rh', 'frontalpole_1-rh']
+    selected_labels_total = [label for label in labels if label.name in label_names]
+    selected_labels = [label for label in filtered_labels if label.name in label_names]
+elif var_or_chatgpt == "var":
+    # Compute label-specific variance.
+    # The general idea is that labels related to neural activity 
+    # should have a higher variance.
+    var = np.mean(np.var(label_ts, axis=2), axis=0)  # shape (n_labels,)
+    label_idx_good = np.argsort(var)[::-1][:20]
+    selected_labels = [labels[id] for id in label_idx_good]
+    
+    # Save the list of most important labels.
+    save_labels = False
+    if save_labels:
+        with open("labels_high_variance.pkl", "wb") as f:
+            pickle.dump(labels_high_variance, f)
+
+# Print missing labels, if any
+missing_labels_subset = list(set(selected_labels_total) - set(selected_labels))
+print(f"Missing labels: {missing_labels_subset}")
 
 # %%
 # Compute the average time course across all sources (dipoles) 
 # that belong to each label (region of interest, ROI),
 # so there is one time series per epoch and per label.
 label_ts = mne.extract_label_time_course(
-    stcs, filtered_labels, inv["src"], return_generator=False, verbose=False)
+    stcs, selected_labels, inv["src"], return_generator=False, verbose=False)
 print(f"Shape of label_ts: {np.array(label_ts).shape}.")
 
 # %%
@@ -237,19 +282,6 @@ plt.ylabel("Mean amplitude")
 plt.show()
 
 # %%
-# Compute label-specific variance.
-# The general idea is that labels related to neural activity 
-# should have a higher variance.
-var = np.mean(np.var(label_ts, axis=2), axis=0)  # shape (n_labels,)
-label_idx_good = np.argsort(var)[::-1][:20]
-labels_high_variance = [labels[id] for id in label_idx_good]
-
-# %%
-# Save the list of most important labels.
-with open("labels_high_variance.pkl", "wb") as f:
-    pickle.dump(labels_high_variance, f)
-
-# %%
 # We can eventually orthogonalize the time series.
 # Question: should we?
 go = False
@@ -259,28 +291,13 @@ if go:
 # %%
 # Band-pass ``label_ts`` at the beta waves range, i.e. between 14 Hz and 30 Hz. 
 # However, it removes the peak.
-label_ts_filtered = mne.filter.filter_data(label_ts, sfreq, 14, 30, verbose=False)
-print(f"Shape of the label_ts_filtered: {np.array(label_ts_filtered).shape}.")
-
-# %%
-label_ts_avg = np.mean(label_ts, axis=0)
-plt.plot(stcs[0].times, label_ts_avg.T)
-plt.title("Mean (over epochs) label time series")
-plt.xlabel("Time (s)")
-plt.ylabel("Mean amplitude")
-plt.show()
-
-# %%
-# Only select a subset of labels.
-# We should select labels now to avoid unuseful computations.
-label_ts_subset = [ts[label_idx_good] for ts in label_ts]
-hilbert_ts_subset = hilbert(label_ts_subset, axis=2)
-envelope_subset = np.abs(hilbert_ts_subset)
+go = False
+if go:
+    label_ts_filtered = mne.filter.filter_data(label_ts, sfreq, 14, 30, verbose=False)
+    print(f"Shape of the label_ts_filtered: {np.array(label_ts_filtered).shape}.")
 
 # %%
 # Compute the envelope.
-# Question: in the example you sent, they band-pass ``label_ts`` on the fly at the beta waves range, 
-# i.e. between 14 Hz and 30 Hz. Do we need a similar filter?
 hilbert_ts = hilbert(label_ts, axis=2)
 envelope = np.abs(hilbert_ts)
 print(f"Shape of the envelope: {envelope.shape}.")
@@ -293,8 +310,6 @@ print(f"Shape of the envelope_cropped: {envelope_cropped.shape}.")
 
 # %%
 # Vizualize the average (over epochs) envelope (one curve per label in the parcellation).
-# Question: is it normal for the figure to look like this,
-# especially with peaks at the edges of the figure?
 envelope_avg = np.mean(envelope_cropped, axis=0)
 times = stcs[0].times[n_removed:-n_removed]
 plt.plot(times, envelope_avg.T)
@@ -342,28 +357,35 @@ factor = int(sfreq // sfreq_envelope)
 envelope_reduced = envelope_concat[:, ::factor]
 print(f"Shape of envelope_reduced: {envelope_reduced.shape}.")
 
-# Only keep the best labels.
-envelope_subset = envelope_reduced[label_idx_good]
-print(f"Shape of envelope_subset: {envelope_subset.shape}.")
-
 # %%
 # Vizualize obtained envelopes.
-# The figure is decomposed into n_batches=4 batches.
+# The figure is decomposed into n_batches intervals.
 # Each batch contains time series from tmin=-5 to tmax=5.
 # I don't like the results because I expected a greater peak 
 # in the middle of each batch.
-plt.plot(envelope_subset.T)
+plt.plot(envelope_reduced.T)
 plt.title("Final data")
-batch_length = envelope_subset.shape[1] // n_batches
+batch_length = envelope_reduced.shape[1] // n_batches
 tick_positions = batch_length * np.arange(n_batches) + batch_length // 2
 tick_labels = np.arange(n_batches)
 plt.xticks(tick_positions, tick_labels)
-ymin, ymax = np.min(envelope_subset), np.max(envelope_subset)
+ymin, ymax = np.min(envelope_reduced), np.max(envelope_reduced)
 for i in range(n_batches+1):
     plt.vlines(x=batch_length*i, ymin=ymin, ymax=ymax, linestyles="--", colors="black")
 plt.xlabel("Batch")
 plt.ylabel("Mean amplitude")
 plt.show()
 # Question: do you think that we can use these data?
+
+# %%
+# %%
+# Vizualize the average (over epochs) envelope (one curve per label in the parcellation).
+envelope_avg = np.mean(envelope_cropped, axis=0)[:, ::factor]
+times = np.linspace(tmin, tmax, envelope_avg.shape[1])
+plt.plot(times, envelope_avg.T)
+plt.title("Mean envelope time series (over epochs)")
+plt.xlabel("Time (s)")
+plt.ylabel("Mean amplitude")
+plt.show()
 
 # %%
