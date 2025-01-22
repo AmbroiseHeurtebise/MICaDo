@@ -3,7 +3,7 @@ from utils import get_participants, process_data_one_subject, plot_envelope
 
 
 # Parameters
-subject_nb = 0
+subject_idx = 0
 n_batches = 10  # used to batch-average epochs
 sfreq_envelope = 10  # used to downsample envelope across timepoints dimension
 metadata_tmin, metadata_tmax = -5., 0. 
@@ -15,7 +15,7 @@ parcellation = "aparc"
 
 # Get DataFrame of participants
 participants = get_participants()
-subject = participants.iloc[subject_nb]['participant_id'].replace('sub-', '')
+subject = participants.iloc[subject_idx]['participant_id'].replace('sub-', '')
 
 # Get envelope of shape (n_labels, n_batches*(tmax-tmin)*sfreq_envelope)
 envelope, labels = process_data_one_subject(
