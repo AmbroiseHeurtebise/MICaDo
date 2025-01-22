@@ -55,6 +55,10 @@ n_batches = 10  # used to batch-average epochs
 sfreq_envelope = 10  # used to downsample envelope across timepoints dimension
 parcellation = "aparc"
 var_or_chatgpt = "ChatGPT"
+moving_avg = True
+metadata_tmin, metadata_tmax = -5., 0
+tmin, tmax = -5, 5
+baseline = (-1.25, -1.0)
 
 # %%
 trans = TRANS_DIR / f"sub-{subject}-trans.fif"
@@ -135,7 +139,6 @@ if go:
 # Remark: Cédric used 3s, not 5s, but we want longer epochs.
 # We set keep_last="audiovis" to remove button press events that occur more than 1s after the audiovis stimulus.
 all_events, all_event_id = mne.events_from_annotations(raw)
-metadata_tmin, metadata_tmax = -5., 0
 metadata, events, event_id = mne.epochs.make_metadata(
     events=all_events, event_id=all_event_id,
     tmin=metadata_tmin, tmax=metadata_tmax, sfreq=sfreq,
@@ -150,10 +153,7 @@ print(f"Time of the last event: {events[-1, 0] / 1000}s.")
 # Cédric used tmin=-1.7 and tmax=1.7 but we need longer data.
 # Remark: Aapo suggested using epochs of length 10s or even 20s. 
 # Question: does the values tmin=-5 and tmax=5 seem good to you?
-tmin = -5
-tmax = 5
 # Question: what values should we choose for the baseline? 
-baseline = (-1.25, -1.0)
 epochs = mne.Epochs(
     raw, events, event_id, metadata=metadata,
     tmin=tmin, tmax=tmax,
@@ -346,46 +346,57 @@ print(f"Shape of envelope_cropped: {envelope_cropped.shape}.")
 envelope_batch_avg = batch_average(envelope_cropped, n_batches=n_batches)
 print(f"Shape of envelope_batch_avg: {envelope_batch_avg.shape}.")
 
-# Concatenate batches.
-n_labels = envelope_batch_avg.shape[1]
-envelope_concat = envelope_batch_avg.swapaxes(0, 1).reshape(n_labels, -1)
-print(f"Shape of envelope_concat: {envelope_concat.shape}.")
-
 # Downsample timepoints.
-# maybe more a moving average
-factor = int(sfreq // sfreq_envelope)
-envelope_reduced = envelope_concat[:, ::factor]
+factor = int(sfreq // sfreq_envelope)  # window size
+if moving_avg:
+    kernel = np.ones(factor) / factor
+    smoothed_envelope = np.apply_along_axis(
+        lambda m: np.convolve(m, kernel, mode='valid'), axis=2, arr=envelope_batch_avg)
+    envelope_reduced = smoothed_envelope[:, :, ::factor]
+else:
+    envelope_reduced = envelope_concat[:, ::factor]
 print(f"Shape of envelope_reduced: {envelope_reduced.shape}.")
+
+# Concatenate batches.
+n_labels = len(selected_labels)
+envelope_concat = envelope_reduced.swapaxes(0, 1).reshape(n_labels, -1)
+print(f"Shape of envelope_concat: {envelope_concat.shape}.")
 
 # %%
 # Vizualize obtained envelopes.
 # The figure is decomposed into n_batches intervals.
 # Each batch contains time series from tmin=-5 to tmax=5.
-# I don't like the results because I expected a greater peak 
-# in the middle of each batch.
-plt.plot(envelope_reduced.T)
+plot_avg = True
+n = envelope_concat.shape[1] // n_batches
+if plot_avg:
+    plt.subplots(figsize=(10, 8))
+    envelope_avg = envelope_concat[:, :n].copy()
+    for i in range(1, n_batches):
+        envelope_avg += envelope_concat[:, n*i:n*(i+1)]
+    envelope_avg /= n_batches
+    times = np.linspace(tmin, tmax, n)
+    for i in range(len(selected_labels)):
+        plt.plot(times, envelope_avg[i], label=f"{selected_labels[i].name}")
+    plt.vlines(
+        x=0, ymin=np.min(envelope_avg), ymax=np.max(envelope_avg),
+        linestyles="--", colors="grey")
+    plt.legend()
+    plt.xlabel("Time (s)")
+else:
+    plt.subplots(figsize=(12, 4))
+    for i in range(len(selected_labels)):
+        plt.plot(envelope_concat[i], label=f"{selected_labels[i].name}")
+    plt.legend()
+    tick_positions = n * np.arange(n_batches) + n // 2
+    tick_labels = np.arange(n_batches)
+    plt.xticks(tick_positions, tick_labels)
+    ymin, ymax = np.min(envelope_concat), np.max(envelope_concat)
+    for i in range(n_batches+1):
+        plt.vlines(x=n*i, ymin=ymin, ymax=ymax, linestyles="--", colors="black")
+    plt.xlabel("Batch")
 plt.title("Final data")
-batch_length = envelope_reduced.shape[1] // n_batches
-tick_positions = batch_length * np.arange(n_batches) + batch_length // 2
-tick_labels = np.arange(n_batches)
-plt.xticks(tick_positions, tick_labels)
-ymin, ymax = np.min(envelope_reduced), np.max(envelope_reduced)
-for i in range(n_batches+1):
-    plt.vlines(x=batch_length*i, ymin=ymin, ymax=ymax, linestyles="--", colors="black")
-plt.xlabel("Batch")
 plt.ylabel("Mean amplitude")
 plt.show()
 # Question: do you think that we can use these data?
-
-# %%
-# %%
-# Vizualize the average (over epochs) envelope (one curve per label in the parcellation).
-envelope_avg = np.mean(envelope_cropped, axis=0)[:, ::factor]
-times = np.linspace(tmin, tmax, envelope_avg.shape[1])
-plt.plot(times, envelope_avg.T)
-plt.title("Mean envelope time series (over epochs)")
-plt.xlabel("Time (s)")
-plt.ylabel("Mean amplitude")
-plt.show()
 
 # %%
