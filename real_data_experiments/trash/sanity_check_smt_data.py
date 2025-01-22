@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import hilbert
-import pickle
+import warnings
 import mne
 import mne_connectivity
 from mne_bids import BIDSPath, read_raw_bids
@@ -72,8 +72,10 @@ bp = BIDSPath(
     datatype="meg",
     extension=".fif",
     session="smt",
-)   
-raw = read_raw_bids(bp, verbose=False)
+)
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", message=".*Unable to map the following column.*")
+    raw = read_raw_bids(bp, verbose=False)
 
 # %%
 # Some info
@@ -180,7 +182,7 @@ evoked.plot(spatial_colors=True, gfp=True)
 src = mne.read_source_spaces(SRC, verbose=False)
 fwd = mne.make_forward_solution(raw.info, trans, src, bem, verbose=False)
 # del src
-cov = mne.compute_raw_covariance(raw)
+cov = mne.compute_raw_covariance(raw, verbose=False)
 inv = make_inverse_operator(raw.info, fwd, cov, verbose=False)
 del fwd
 
@@ -241,6 +243,13 @@ elif parcellation == "aparc_sub":
         'lateraloccipital_1-lh', 'frontalpole_1-lh', 'precentral_1-rh', 'precentral_2-rh',
         'postcentral_1-rh', 'postcentral_2-rh', 'paracentral_1-rh', 'superiorfrontal_1-rh',
         'transversetemporal_1-rh', 'lateraloccipital_1-rh', 'frontalpole_1-rh']
+    # alternative list of 20 labels
+    # label_names = ['precentral_1-lh', 'precentral_2-lh', 'precentral_3-lh', 'precentral_4-lh',
+    #       'postcentral_1-lh', 'postcentral_2-lh', 'postcentral_3-lh', 'postcentral_4-lh',
+    #       'superiorfrontal_1-lh', 'superiorfrontal_2-lh', 'precentral_1-rh', 'precentral_2-rh',
+    #       'precentral_3-rh', 'precentral_4-rh', 'postcentral_1-rh', 'postcentral_2-rh',
+    #       'postcentral_3-rh', 'postcentral_4-rh', 'superiorfrontal_1-rh', 'superiorfrontal_2-rh']
+
 selected_labels_total = [label for label in labels if label.name in label_names]
 selected_labels = [label for label in filtered_labels if label.name in label_names]
 
@@ -339,7 +348,7 @@ if moving_avg:
         lambda m: np.convolve(m, kernel, mode='valid'), axis=2, arr=envelope_batch_avg)
     envelope_reduced = smoothed_envelope[:, :, ::factor]
 else:
-    envelope_reduced = envelope_batch_avg[:, ::factor]
+    envelope_reduced = envelope_batch_avg[:, :, ::factor]
 print(f"Shape of envelope_reduced: {envelope_reduced.shape}.")
 
 # Concatenate batches.
@@ -383,7 +392,5 @@ plt.title("Final data")
 plt.ylabel("Mean amplitude")
 plt.show()
 # Question: do you think that we can use these data?
-
-# %%
 
 # %%
