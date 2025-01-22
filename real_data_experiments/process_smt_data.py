@@ -212,7 +212,7 @@ metadata_tmin, metadata_tmax = -5., 0.
 baseline = (-1.25, -1.0)
 tmin, tmax = -5, 5
 # List of 20 labels of the "aparc_sub" parcellation that are often related to motor processing
-labels = ['precentral_1-lh', 'precentral_2-lh', 'precentral_3-lh', 'precentral_4-lh',
+labels_subset = ['precentral_1-lh', 'precentral_2-lh', 'precentral_3-lh', 'precentral_4-lh',
           'postcentral_1-lh', 'postcentral_2-lh', 'postcentral_3-lh', 'postcentral_4-lh',
           'superiorfrontal_1-lh', 'superiorfrontal_2-lh', 'precentral_1-rh', 'precentral_2-rh',
           'precentral_3-rh', 'precentral_4-rh', 'postcentral_1-rh', 'postcentral_2-rh',
