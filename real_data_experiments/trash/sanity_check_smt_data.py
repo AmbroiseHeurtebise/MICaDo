@@ -54,7 +54,6 @@ subject = goods[0]
 n_batches = 10  # used to batch-average epochs
 sfreq_envelope = 10  # used to downsample envelope across timepoints dimension
 parcellation = "aparc"
-var_or_chatgpt = "ChatGPT"
 moving_avg = True
 metadata_tmin, metadata_tmax = -5., 0
 tmin, tmax = -5, 5
@@ -228,36 +227,22 @@ missing_labels_src = list(set(labels) - set(filtered_labels))
 print(f"Missing labels: {missing_labels_src}")
 
 # Select some interesting labels
-if var_or_chatgpt == "ChatGPT":
-    if parcellation == "aparc":
-        # 10 already chosen labels
-        label_names = [
-            'precentral-lh', 'postcentral-lh', 'parsopercularis-lh', 'transversetemporal-lh',
-            'pericalcarine-lh', 'precentral-rh', 'postcentral-rh', 'parsopercularis-rh',
-            'transversetemporal-rh', 'pericalcarine-rh']
-    elif parcellation == "aparc_sub":
-        # 18 already chosen labels
-        label_names = [
-            'precentral_1-lh', 'precentral_2-lh', 'postcentral_1-lh', 'postcentral_2-lh',
-            'paracentral_1-lh', 'superiorfrontal_1-lh', 'transversetemporal_1-lh',
-            'lateraloccipital_1-lh', 'frontalpole_1-lh', 'precentral_1-rh', 'precentral_2-rh',
-            'postcentral_1-rh', 'postcentral_2-rh', 'paracentral_1-rh', 'superiorfrontal_1-rh',
-            'transversetemporal_1-rh', 'lateraloccipital_1-rh', 'frontalpole_1-rh']
-    selected_labels_total = [label for label in labels if label.name in label_names]
-    selected_labels = [label for label in filtered_labels if label.name in label_names]
-elif var_or_chatgpt == "var":
-    # Compute label-specific variance.
-    # The general idea is that labels related to neural activity 
-    # should have a higher variance.
-    var = np.mean(np.var(label_ts, axis=2), axis=0)  # shape (n_labels,)
-    label_idx_good = np.argsort(var)[::-1][:20]
-    selected_labels = [labels[id] for id in label_idx_good]
-    
-    # Save the list of most important labels.
-    save_labels = False
-    if save_labels:
-        with open("labels_high_variance.pkl", "wb") as f:
-            pickle.dump(labels_high_variance, f)
+if parcellation == "aparc":
+    # 10 already chosen labels
+    label_names = [
+        'precentral-lh', 'postcentral-lh', 'parsopercularis-lh', 'transversetemporal-lh',
+        'pericalcarine-lh', 'precentral-rh', 'postcentral-rh', 'parsopercularis-rh',
+        'transversetemporal-rh', 'pericalcarine-rh']
+elif parcellation == "aparc_sub":
+    # 18 already chosen labels
+    label_names = [
+        'precentral_1-lh', 'precentral_2-lh', 'postcentral_1-lh', 'postcentral_2-lh',
+        'paracentral_1-lh', 'superiorfrontal_1-lh', 'transversetemporal_1-lh',
+        'lateraloccipital_1-lh', 'frontalpole_1-lh', 'precentral_1-rh', 'precentral_2-rh',
+        'postcentral_1-rh', 'postcentral_2-rh', 'paracentral_1-rh', 'superiorfrontal_1-rh',
+        'transversetemporal_1-rh', 'lateraloccipital_1-rh', 'frontalpole_1-rh']
+selected_labels_total = [label for label in labels if label.name in label_names]
+selected_labels = [label for label in filtered_labels if label.name in label_names]
 
 # Print missing labels, if any
 missing_labels_subset = list(set(selected_labels_total) - set(selected_labels))
@@ -354,7 +339,7 @@ if moving_avg:
         lambda m: np.convolve(m, kernel, mode='valid'), axis=2, arr=envelope_batch_avg)
     envelope_reduced = smoothed_envelope[:, :, ::factor]
 else:
-    envelope_reduced = envelope_concat[:, ::factor]
+    envelope_reduced = envelope_batch_avg[:, ::factor]
 print(f"Shape of envelope_reduced: {envelope_reduced.shape}.")
 
 # Concatenate batches.
@@ -398,5 +383,7 @@ plt.title("Final data")
 plt.ylabel("Mean amplitude")
 plt.show()
 # Question: do you think that we can use these data?
+
+# %%
 
 # %%
