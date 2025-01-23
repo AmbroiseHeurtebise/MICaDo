@@ -47,7 +47,7 @@ for i, subject in enumerate(subjects):
 X = np.array(X)
 
 # Save data
-save_dir = "/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments/data/"
+save_dir = "/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments/data_envelopes/"
 np.save(save_dir + f"X_{parcellation}_{n_subjects}_subjects.npy", X)
 with open(save_dir + f"labels_{parcellation}_{n_subjects}_subjects.pkl", "wb") as f:
     pickle.dump(labels, f)
