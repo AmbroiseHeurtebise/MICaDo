@@ -86,9 +86,9 @@ def process_data_one_subject(
     trans = TRANS_DIR / f"sub-{subject}-trans.fif"
     bem = FREESURFER_DIR / f"{subject}/bem/{subject}-meg-bem.fif"
     src = mne.read_source_spaces(SRC, verbose=verbose)
-    fwd = mne.make_forward_solution(raw.info, trans, src, bem, verbose=verbose)
+    fwd = mne.make_forward_solution(raw.info, trans, src, bem, n_jobs=1, verbose=verbose)
     del src
-    cov = mne.compute_raw_covariance(raw, verbose=verbose)
+    cov = mne.compute_raw_covariance(raw, n_jobs=1, verbose=verbose)
     inv = make_inverse_operator(raw.info, fwd, cov, verbose=verbose)
     del fwd
     

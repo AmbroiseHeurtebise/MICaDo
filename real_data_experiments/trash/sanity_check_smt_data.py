@@ -180,9 +180,9 @@ evoked.plot(spatial_colors=True, gfp=True)
 # Is it a problem?
 # Remark: we could also use ``trans`` and ``bem`` files from fsaverage., WDYT?
 src = mne.read_source_spaces(SRC, verbose=False)
-fwd = mne.make_forward_solution(raw.info, trans, src, bem, verbose=False)
-# del src
-cov = mne.compute_raw_covariance(raw, verbose=False)
+fwd = mne.make_forward_solution(raw.info, trans, src, bem, n_jobs=1, verbose=False)
+del src
+cov = mne.compute_raw_covariance(raw, n_jobs=1, verbose=False)
 inv = make_inverse_operator(raw.info, fwd, cov, verbose=False)
 del fwd
 
