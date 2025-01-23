@@ -7,7 +7,7 @@ from mvica_lingam.mvica_lingam import mvica_lingam
 
 # Parameters
 n_subjects_total = 40
-n_subjects_used = 6
+n_subjects_used = 40
 parcellation = "aparc"
 hemi = "rh"
 
