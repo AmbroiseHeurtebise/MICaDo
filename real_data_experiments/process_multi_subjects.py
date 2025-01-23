@@ -4,7 +4,7 @@ from utils import get_participants, process_data_one_subject
 import os
 
 
-# I don't know how to limit the number of jobs when using the functions
+# I'm not sure if the following lines limit the number of jobs when using the functions
 # apply_inverse_epochs and make_inverse_operator from mne.minimum_norm
 os.environ["OMP_NUM_THREADS"] = "4"
 os.environ["MKL_NUM_THREADS"] = "4"
@@ -23,11 +23,13 @@ parcellation = "aparc"
 
 # Get subjects
 participants = get_participants()
-subjects = participants['participant_id'].head(n_subjects).str.replace('sub-', '', regex=False).tolist()
+subjects = participants[
+    'participant_id'].head(n_subjects).str.replace('sub-', '', regex=False).tolist()
 
 # Get data
 X = []
-for subject in subjects:
+for i, subject in enumerate(subjects):
+    print(f"Starting processing of subject {i}")
     envelope, labels = process_data_one_subject(
         subject,
         n_batches=n_batches,
