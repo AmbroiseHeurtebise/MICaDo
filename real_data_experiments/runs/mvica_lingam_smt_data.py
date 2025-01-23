@@ -1,7 +1,7 @@
-# %%
 import numpy as np
 import pickle
 from time import time
+from pathlib import Path
 from mvica_lingam.mvica_lingam import mvica_lingam
 
 
@@ -9,12 +9,13 @@ from mvica_lingam.mvica_lingam import mvica_lingam
 n_subjects_total = 40
 n_subjects_used = 6
 parcellation = "aparc"
-hemi = "lh"
+hemi = "rh"
 
 # Load data
-save_dir = "/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments/data_envelopes/"
-X = np.load(save_dir + f"X_{parcellation}_{n_subjects_total}_subjects.npy")
-with open(save_dir + f"labels_{parcellation}_{n_subjects_total}_subjects.pkl", "rb") as f:
+expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
+load_dir = expes_dir / "data_envelopes"
+X = np.load(load_dir / f"X_{parcellation}_{n_subjects_total}_subjects.npy")
+with open(load_dir / f"labels_{parcellation}_{n_subjects_total}_subjects.pkl", "rb") as f:
     labels = pickle.load(f)
 
 # Separate the two hemispheres
@@ -33,10 +34,18 @@ elif hemi == "rh":
 else:
     X_used = X
 
-# %%
 # Apply our method
 start = time()
-P, B, _, _, _ = mvica_lingam(X_used[:n_subjects_used])
+P, T, _, _, _ = mvica_lingam(X_used[:n_subjects_used])
 execution_time = time() - start
+print(f"The method took {execution_time:.2f} s.")
 
-# %%
+# Recover the adjacency matrix
+B = P.T @ T @ P
+
+# Save data
+save_dir = Path(expes_dir / f"results/{parcellation}_{n_subjects_used}_subjects_{hemi}")
+save_dir.mkdir(parents=True, exist_ok=True)
+np.save(save_dir / "P.npy", P)
+np.save(save_dir / "T.npy", T)
+np.save(save_dir / "B.npy", B)
