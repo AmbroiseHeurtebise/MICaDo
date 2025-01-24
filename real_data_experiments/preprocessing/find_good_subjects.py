@@ -28,13 +28,12 @@ filtered_participants = participants[
 filtered_participants
 
 # %%
-i = 106
+i = 0
 subject = names_trans_available[i]
 print(f"Subject: {i}:'{subject}'")
 trans = TRANS_DIR / f"sub-{subject}-trans.fif"
 bem = FREESURFER_DIR / f"{subject}/bem/{subject}-meg-bem.fif"
 
-# %%
 # Read raw data of one participant
 bp = BIDSPath(
     root=BIDS_ROOT,

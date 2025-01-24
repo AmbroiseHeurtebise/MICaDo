@@ -12,7 +12,7 @@ n_subjects_total = 40
 n_subjects_used = 40
 parcellation = "aparc"
 hemi = "lh"
-n_arrows = 7
+n_arrows = 5
 
 # Load labels
 expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
@@ -61,6 +61,9 @@ ranked_flat[indices] = np.arange(M.size)
 B_avg_rank = ranked_flat.reshape(M.shape)
 B_avg_subset = B_avg * (B_avg_rank < n_arrows)
 
+homogenise = False
+if homogenise:
+    B_avg_subset = np.sign(B_avg_subset) * np.sqrt(np.abs(B_avg_subset))
 fig, ax = plt.subplots()
 norm = TwoSlopeNorm(vmin=np.min(B_avg_subset), vmax=np.max(B_avg_subset), vcenter=0)
 plt.imshow(B_avg_subset, norm=norm, cmap="coolwarm")
@@ -72,4 +75,11 @@ ax.set_xticklabels(label_names, rotation=45)
 ax.set_yticklabels(label_names)
 plt.show()
 
+# %%
+order = np.argmax(P, axis=1)
+labels_ordered = [label_names[order[i]] for i in range(len(label_names))]
+labels_ordered
+
+# %%
+B_avg
 # %%

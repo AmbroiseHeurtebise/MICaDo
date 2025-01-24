@@ -11,7 +11,7 @@ os.environ["MKL_NUM_THREADS"] = "4"
 os.environ["NUMEXPR_NUM_THREADS"] = "4"
 
 # Parameters
-n_subjects = 40
+n_subjects = 160
 n_batches = 10
 sfreq_envelope = 10
 metadata_tmin, metadata_tmax = -5., 0. 
