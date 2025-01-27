@@ -12,7 +12,8 @@ n_labels = 10
 
 # Load data
 expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
-load_dir = expes_dir / "data_envelopes"
+load_dir = expes_dir / f"2_data_envelopes/{parcellation}_{n_subjects}_subjects"
+
 X_loaded = np.load(load_dir / f"X_{parcellation}_{n_subjects}_subjects.npz")
 X_list = [X_loaded[key] for key in X_loaded.files]
 
@@ -38,7 +39,7 @@ print(f"The method took {execution_time:.2f} s.")
 B = P.T @ T @ P
 
 # Save data
-save_dir = Path(expes_dir / f"results/{parcellation}_{n_subjects}_subjects")
+save_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects}_subjects")
 save_dir.mkdir(parents=True, exist_ok=True)
 np.save(save_dir / "P.npy", P)
 np.save(save_dir / "T.npy", T)

@@ -2,6 +2,7 @@ import numpy as np
 import pickle
 from utils import get_participants, process_data_one_subject
 import os
+from pathlib import Path
 
 
 # I'm not sure if the following lines limit the number of jobs when using the functions
@@ -11,11 +12,11 @@ os.environ["MKL_NUM_THREADS"] = "4"
 os.environ["NUMEXPR_NUM_THREADS"] = "4"
 
 # Parameters
-n_subjects = 158
+n_subjects = 156
 tmin, tmax = -1.5, 3.
 baseline = (-1.5, -1.0)
 fmin, fmax = 8, 27
-parcellation = "aparc"
+parcellation = "aparc_sub"
 normalize = True
 orthogonalize = False
 n_crop_edges = 20
@@ -59,7 +60,10 @@ for i, subject in enumerate(subjects):
 
 # Save data
 n_subjects_found = len(X_list)  # may be lower than n_subjects
-save_dir = "/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments/data_envelopes/"
-np.savez(save_dir + f"X_{parcellation}_{n_subjects_found}_subjects.npz", *X_list)
-with open(save_dir + f"labels_{parcellation}_{n_subjects_found}_subjects.pkl", "wb") as f:
+expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
+save_dir = expes_dir / f"2_data_envelopes/{parcellation}_{n_subjects}_subjects"
+save_dir.mkdir(parents=True, exist_ok=True)
+
+np.savez(save_dir / f"X_{parcellation}_{n_subjects_found}_subjects.npz", *X_list)
+with open(save_dir / f"labels_{parcellation}_{n_subjects_found}_subjects.pkl", "wb") as f:
     pickle.dump(labels_list, f)

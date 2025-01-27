@@ -134,7 +134,7 @@ def process_data_one_subject(
             'lateraloccipital-lh', 'paracentral-rh', 'precentral-rh', 'postcentral-rh',
             'transversetemporal-rh', 'lateraloccipital-rh']
     elif parcellation == "aparc_sub":
-        # 36 already chosen labels
+        # 38 already chosen labels
         label_names = [
             'postcentral_3-lh', 'postcentral_5-rh', 'postcentral_6-lh', 'postcentral_6-rh',
             'postcentral_7-lh', 'postcentral_7-rh', 'postcentral_8-lh', 'postcentral_8-rh',
