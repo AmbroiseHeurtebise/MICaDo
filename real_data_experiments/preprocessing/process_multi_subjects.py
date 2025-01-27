@@ -11,15 +11,17 @@ os.environ["MKL_NUM_THREADS"] = "4"
 os.environ["NUMEXPR_NUM_THREADS"] = "4"
 
 # Parameters
-n_subjects = 160
-n_batches = 10
-sfreq_envelope = 10
-metadata_tmin, metadata_tmax = -5., 0. 
-baseline = (-1.25, -1.0)
-tmin, tmax = -5, 5
-n_crop_edges = 5
-moving_avg = True
+n_subjects = 158
+tmin, tmax = -1.5, 3.
+baseline = (-1.5, -1.0)
+fmin, fmax = 8, 27
 parcellation = "aparc"
+normalize = True
+orthogonalize = False
+n_crop_edges = 20
+moving_avg = True
+sfreq_envelope = 10
+n_batches = 40
 
 # Get subjects
 participants = get_participants()
@@ -27,27 +29,37 @@ subjects = participants[
     'participant_id'].head(n_subjects).str.replace('sub-', '', regex=False).tolist()
 
 # Get data
-X = []
+X_list = []
+labels_list = []
 for i, subject in enumerate(subjects):
-    print(f"Starting processing of subject {i}")
-    envelope, labels = process_data_one_subject(
-        subject,
-        n_batches=n_batches,
-        sfreq_envelope=sfreq_envelope,
-        tmin=tmin,
-        tmax=tmax,
-        baseline=baseline,
-        metadata_tmin=metadata_tmin,
-        metadata_tmax=metadata_tmax,
-        n_crop_edges=n_crop_edges,
-        moving_avg=moving_avg,
-        parcellation=parcellation,
-    )
-    X.append(envelope)
-X = np.array(X)
+    print(f"Starting processing of subject {i}: {subject}")
+    try:
+        envelope, labels = process_data_one_subject(
+            subject,
+            tmin=tmin,
+            tmax=tmax,
+            baseline=baseline,
+            fmin=fmin,
+            fmax=fmax,
+            parcellation=parcellation,
+            normalize=normalize,
+            orthogonalize=orthogonalize,
+            n_crop_edges=n_crop_edges,
+            moving_avg=moving_avg,
+            sfreq_envelope=sfreq_envelope,
+            n_batches=n_batches,
+        )
+        X_list.append(envelope)
+        labels_list.append(labels)
+    except ValueError as e:
+        if str(e) == "There are less epochs than batches.":
+            print(f"Skipping index {i} due to ValueError: {e}")
+        else:
+            raise
 
 # Save data
+n_subjects_found = len(X_list)  # may be lower than n_subjects
 save_dir = "/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments/data_envelopes/"
-np.save(save_dir + f"X_{parcellation}_{n_subjects}_subjects.npy", X)
-with open(save_dir + f"labels_{parcellation}_{n_subjects}_subjects.pkl", "wb") as f:
-    pickle.dump(labels, f)
+np.savez(save_dir + f"X_{parcellation}_{n_subjects_found}_subjects.npy", *X_list)
+with open(save_dir + f"labels_{parcellation}_{n_subjects_found}_subjects.pkl", "wb") as f:
+    pickle.dump(labels_list, f)
