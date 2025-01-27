@@ -134,19 +134,20 @@ def process_data_one_subject(
             'lateraloccipital-lh', 'paracentral-rh', 'precentral-rh', 'postcentral-rh',
             'transversetemporal-rh', 'lateraloccipital-rh']
     elif parcellation == "aparc_sub":
-        # 18 already chosen labels
+        # 36 already chosen labels
         label_names = [
-            'precentral_1-lh', 'precentral_2-lh', 'postcentral_1-lh', 'postcentral_2-lh',
-            'paracentral_1-lh', 'superiorfrontal_1-lh', 'transversetemporal_1-lh',
-            'lateraloccipital_1-lh', 'frontalpole_1-lh', 'precentral_1-rh', 'precentral_2-rh',
-            'postcentral_1-rh', 'postcentral_2-rh', 'paracentral_1-rh', 'superiorfrontal_1-rh',
-            'transversetemporal_1-rh', 'lateraloccipital_1-rh', 'frontalpole_1-rh']
-        # alternative list of 20 labels
-        # label_names = ['precentral_1-lh', 'precentral_2-lh', 'precentral_3-lh', 'precentral_4-lh',
-        #       'postcentral_1-lh', 'postcentral_2-lh', 'postcentral_3-lh', 'postcentral_4-lh',
-        #       'superiorfrontal_1-lh', 'superiorfrontal_2-lh', 'precentral_1-rh', 'precentral_2-rh',
-        #       'precentral_3-rh', 'precentral_4-rh', 'postcentral_1-rh', 'postcentral_2-rh',
-        #       'postcentral_3-rh', 'postcentral_4-rh', 'superiorfrontal_1-rh', 'superiorfrontal_2-rh']
+            'postcentral_3-lh', 'postcentral_5-rh', 'postcentral_6-lh', 'postcentral_6-rh',
+            'postcentral_7-lh', 'postcentral_7-rh', 'postcentral_8-lh', 'postcentral_8-rh',
+            'postcentral_9-lh', 'postcentral_9-rh', 'precentral_10-lh', 'precentral_10-rh',
+            'precentral_11-lh', 'precentral_11-rh', 'precentral_7-lh', 'precentral_7-rh',
+            'precentral_8-lh', 'precentral_8-rh', 'precentral_9-lh', 'precentral_9-rh',
+            'lateraloccipital_1-lh', 'lateraloccipital_1-rh', 'lateraloccipital_2-lh',
+            'lateraloccipital_2-rh', 'lateraloccipital_3-rh', 'pericalcarine_1-lh',
+            'pericalcarine_2-lh', 'pericalcarine_2-rh', 'pericalcarine_3-rh', 'pericalcarine_4-rh',
+            'transversetemporal_1-lh', 'transversetemporal_1-rh', 'transversetemporal_2-lh',
+            'superiortemporal_1-rh', 'superiortemporal_3-lh', 'superiortemporal_4-lh',
+            'superiortemporal_5-lh', 'superiortemporal_5-rh',
+        ]
     selected_labels = [label for label in filtered_labels if label.name in label_names]
 
     # Compute average time course across all sources (dipoles) 
@@ -168,7 +169,7 @@ def process_data_one_subject(
     if orthogonalize:
         label_ts = mne_connectivity.symmetric_orth(label_ts)
 
-    # Compute the envelope.
+    # Compute the envelope
     hilbert_ts = hilbert(label_ts, axis=2)
     envelope = np.abs(hilbert_ts)
 
@@ -288,11 +289,11 @@ def get_participants():
         participants['participant_id'].str.replace('sub-', '', regex=False).isin(
             names_trans_available)]
 
-    # Only keep participants with clean evoked data (160 out of the 354 with a trans file)
+    # Only keep participants with clean evoked data (156 out of the 354 with a trans file)
     goods = [
         'CC110033', 'CC120182', 'CC120313', 'CC120376', 'CC120550', 'CC120727',
-        'CC120795', 'CC121106', 'CC121111', 'CC121144', 'CC121428', 'CC210051',
-        'CC210519', 'CC210617', 'CC220151', 'CC220352', 'CC220506', 'CC220518', 'CC220843',
+        'CC120795', 'CC121106', 'CC121111', 'CC121428', 'CC210051',
+        'CC210617', 'CC220151', 'CC220352', 'CC220506', 'CC220518', 'CC220843',
         'CC220901', 'CC221031', 'CC221107', 'CC221220', 'CC221324', 'CC221352', 'CC221565',
         'CC222264', 'CC310086', 'CC310129', 'CC310135', 'CC310361', 'CC310400', 'CC310450',
         'CC310473', 'CC320160', 'CC320206', 'CC320218', 'CC320379', 'CC320417', 'CC320478',

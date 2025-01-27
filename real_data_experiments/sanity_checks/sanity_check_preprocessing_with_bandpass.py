@@ -32,11 +32,11 @@ participants_with_trans = participants[
     participants['participant_id'].str.replace('sub-', '', regex=False).isin(
         names_trans_available)]
 
-# Only keep participants with clean evoked data (158 out of 354)
+# Only keep participants with clean evoked data (156 out of 354)
 goods = [
     'CC110033', 'CC120182', 'CC120313', 'CC120376', 'CC120550', 'CC120727',
-    'CC120795', 'CC121106', 'CC121111', 'CC121144', 'CC121428', 'CC210051',
-    'CC210519', 'CC210617', 'CC220151', 'CC220352', 'CC220506', 'CC220518', 'CC220843',
+    'CC120795', 'CC121106', 'CC121111', 'CC121428', 'CC210051',
+    'CC210617', 'CC220151', 'CC220352', 'CC220506', 'CC220518', 'CC220843',
     'CC220901', 'CC221031', 'CC221107', 'CC221220', 'CC221324', 'CC221352', 'CC221565',
     'CC222264', 'CC310086', 'CC310129', 'CC310135', 'CC310361', 'CC310400', 'CC310450',
     'CC310473', 'CC320160', 'CC320206', 'CC320218', 'CC320379', 'CC320417', 'CC320478',
@@ -64,15 +64,16 @@ filtered_participants
 
 # %%
 # Parameters
-subject = goods[3]
+subject = goods[11]
 tmin, tmax = -1.5, 3.
 baseline = (-1.5, -1.)
 fmin, fmax = 8, 27  # alpha and beta
-parcellation = "aparc"
-n_crop = 50
+parcellation = "aparc_sub"
+n_crop = 20
 go_subtract_evoked = False
 go_normalize = True
 go_orthogonalize = False
+all_labels = True
 
 # %%
 # Read raw data of one participant
@@ -146,9 +147,8 @@ epochs = mne.Epochs(
 epochs = epochs["audiovis > -1. and nb_buttons == 1"]
 
 # %%
-# Remove evoked data from epochs
-if go_subtract_evoked:
-    epochs.subtract_evoked()
+# Plot the envelope at this stage
+epochs.copy().apply_hilbert(envelope=True).average().plot()
 
 # %%
 # Compute the forward and inverse
@@ -184,7 +184,40 @@ filtered_labels = [
 
 # Print missing labels, if any
 missing_labels_src = list(set(labels) - set(filtered_labels))
-print(f"Missing labels: {missing_labels_src}")
+print(f"Missing labels ({len(missing_labels_src)} out of {len(labels)}):\n{missing_labels_src}")
+
+# %%
+# Eventually select a subset of interesting labels
+if parcellation == "aparc":
+    # 10 already chosen labels
+    label_names = [
+        'paracentral-lh', 'precentral-lh', 'postcentral-lh', 'transversetemporal-lh', 
+        'lateraloccipital-lh', 'paracentral-rh', 'precentral-rh', 'postcentral-rh',
+        'transversetemporal-rh', 'lateraloccipital-rh']
+elif parcellation == "aparc_sub":
+    # 36 already chosen labels
+    label_names = [
+        'postcentral_3-lh', 'postcentral_5-rh', 'postcentral_6-lh', 'postcentral_6-rh',
+        'postcentral_7-lh', 'postcentral_7-rh', 'postcentral_8-lh', 'postcentral_8-rh',
+        'postcentral_9-lh', 'postcentral_9-rh', 'precentral_10-lh', 'precentral_10-rh',
+        'precentral_11-lh', 'precentral_11-rh', 'precentral_7-lh', 'precentral_7-rh',
+        'precentral_8-lh', 'precentral_8-rh', 'precentral_9-lh', 'precentral_9-rh',
+        'lateraloccipital_1-lh', 'lateraloccipital_1-rh', 'lateraloccipital_2-lh',
+        'lateraloccipital_2-rh', 'lateraloccipital_3-rh', 'pericalcarine_1-lh',
+        'pericalcarine_2-lh', 'pericalcarine_2-rh', 'pericalcarine_3-rh', 'pericalcarine_4-rh',
+        'transversetemporal_1-lh', 'transversetemporal_1-rh', 'transversetemporal_2-lh',
+        'superiortemporal_1-rh', 'superiortemporal_3-lh', 'superiortemporal_4-lh',
+        'superiortemporal_5-lh', 'superiortemporal_5-rh',
+    ]
+selected_labels_total = [label for label in labels if label.name in label_names]
+selected_labels = [label for label in filtered_labels if label.name in label_names]
+
+# Print missing labels, if any
+missing_labels_subset = list(set(selected_labels_total) - set(selected_labels))
+print(f"Missing labels: {missing_labels_subset}")
+
+if not all_labels:
+    filtered_labels = selected_labels
 
 # %%
 # Compute the average time course across all sources
@@ -261,7 +294,7 @@ plt.title("Average envelope")
 # %%
 # Better vizualization of the label time series
 height = 0.5
-fig, ax = plt.subplots(figsize=(8, 25))
+fig, ax = plt.subplots(figsize=(8, len(filtered_labels) // 3))
 for i in range(len(filtered_labels)):
     plt.plot(times, envelope_avg_centered[i] - height * i)
     plt.hlines(y=-height*i, xmin=times[0], xmax=times[-1], linestyles="--", colors="grey")
@@ -271,6 +304,7 @@ yticklabels = [label.name for label in filtered_labels][::-1]
 ax.set_yticks(yticks)
 ax.set_yticklabels(yticklabels)
 ax.set_xlim([times[0], times[-1]])
+ax.set_ylim([-height*len(filtered_labels), height])
 plt.title("Mean (over epochs) label time series")
 plt.xlabel("Time (s)")
 plt.ylabel("Mean amplitude")
@@ -278,7 +312,7 @@ plt.show()
 
 # %%
 # Print labels with the highest variance
-nb_labels_high = 16
+nb_labels_high = 30
 indices = np.argsort(np.var(envelope_avg, axis=1))[::-1][:nb_labels_high]
 activated_labels = [filtered_labels[i].name for i in indices]
 activated_labels
