@@ -5,6 +5,7 @@ import warnings
 import matplotlib.pyplot as plt
 from scipy.signal import hilbert
 import mne
+import mne_connectivity
 from mne_bids import BIDSPath, read_raw_bids
 from mne.minimum_norm import apply_inverse_epochs, make_inverse_operator
 

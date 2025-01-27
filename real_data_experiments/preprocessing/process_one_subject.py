@@ -1,9 +1,8 @@
-import pandas as pd
 from utils import get_participants, process_data_one_subject, plot_envelope
 
 
 # Parameters
-subject_idx = 2
+subject_idx = 3
 tmin, tmax = -1.5, 3.
 baseline = (-1.5, -1.0)
 fmin, fmax = 8, 27
