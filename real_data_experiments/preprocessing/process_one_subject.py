@@ -2,7 +2,7 @@ from utils import get_participants, process_data_one_subject, plot_envelope
 
 
 # Parameters
-subject_idx = 3
+subject_idx = 6
 tmin, tmax = -1.5, 3.
 baseline = (-1.5, -1.0)
 fmin, fmax = 8, 27
@@ -39,6 +39,8 @@ envelope, labels = process_data_one_subject(
 plot_envelope(
     envelope,
     n_batches=n_batches,
+    tmin=tmin,
+    tmax=tmax,
     plot_avg=True,
     labels=labels,
     save=True,

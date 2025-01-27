@@ -181,7 +181,8 @@ def process_data_one_subject(
 
     # Perform batch-averaging
     if n_epochs < n_batches:
-        raise ValueError(f"There are {n_epochs} epochs for {n_batches} batches.")
+        print(f"There are {n_epochs} epochs for {n_batches} batches.")
+        raise ValueError("There are less epochs than batches.")
     envelope = batch_average(envelope, n_batches=n_batches)
 
     # Downsample time points
@@ -219,8 +220,8 @@ def batch_average(envelope, n_batches):
 def plot_envelope(
     envelope,
     n_batches=1,
-    tmin=-5.,
-    tmax=5.,
+    tmin=-1.5,
+    tmax=3.,
     plot_avg=False,
     labels=None,
     save=False,
