@@ -6,37 +6,31 @@ from mvica_lingam.mvica_lingam import mvica_lingam
 
 
 # Parameters
-n_subjects_total = 40
-n_subjects_used = 40
+n_subjects = 3
 parcellation = "aparc"
-hemi = "rh"
+n_labels = 10
 
 # Load data
 expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
 load_dir = expes_dir / "data_envelopes"
-X = np.load(load_dir / f"X_{parcellation}_{n_subjects_total}_subjects.npy")
-with open(load_dir / f"labels_{parcellation}_{n_subjects_total}_subjects.pkl", "rb") as f:
-    labels = pickle.load(f)
+X_loaded = np.load(load_dir / f"X_{parcellation}_{n_subjects}_subjects.npz")
+X_list = [X_loaded[key] for key in X_loaded.files]
 
-# Separate the two hemispheres
-idx_lh = [i for i in range(len(labels)) if labels[i].hemi == 'lh']
-idx_rh = np.setdiff1d(np.arange(len(labels)), idx_lh)
-X_lh = X[:, idx_lh]
-X_rh = X[:, idx_rh]
-labels_lh = [labels[i] for i in idx_lh]
-labels_rh = [labels[i] for i in idx_rh]
+# Load labels
+with open(load_dir / f"labels_{parcellation}_{n_subjects}_subjects.pkl", "rb") as f:
+    labels_list = pickle.load(f)
 
-# Choose either both hemispheres or only one of them
-if hemi == "lh":
-    X_used = X_lh
-elif hemi == "rh":
-    X_used = X_rh
-else:
-    X_used = X
+# Only keep subjects that have ``n_labels`` labels
+X = []
+for i in range(len(labels_list)):
+    if len(labels_list[i]) == n_labels:
+        X.append(X_list[i])
+        labels = labels_list[i]
+X = np.array(X)
 
 # Apply our method
 start = time()
-P, T, _, _, _ = mvica_lingam(X_used[:n_subjects_used])
+P, T, _, _, _ = mvica_lingam(X)
 execution_time = time() - start
 print(f"The method took {execution_time:.2f} s.")
 
@@ -44,8 +38,10 @@ print(f"The method took {execution_time:.2f} s.")
 B = P.T @ T @ P
 
 # Save data
-save_dir = Path(expes_dir / f"results/{parcellation}_{n_subjects_used}_subjects_{hemi}")
+save_dir = Path(expes_dir / f"results/{parcellation}_{n_subjects}_subjects")
 save_dir.mkdir(parents=True, exist_ok=True)
 np.save(save_dir / "P.npy", P)
 np.save(save_dir / "T.npy", T)
 np.save(save_dir / "B.npy", B)
+with open(save_dir / f"labels_{parcellation}_{n_subjects}_subjects.pkl", "wb") as f:
+    pickle.dump(labels, f)
