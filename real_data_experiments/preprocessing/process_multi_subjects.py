@@ -60,6 +60,6 @@ for i, subject in enumerate(subjects):
 # Save data
 n_subjects_found = len(X_list)  # may be lower than n_subjects
 save_dir = "/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments/data_envelopes/"
-np.savez(save_dir + f"X_{parcellation}_{n_subjects_found}_subjects.npy", *X_list)
+np.savez(save_dir + f"X_{parcellation}_{n_subjects_found}_subjects.npz", *X_list)
 with open(save_dir + f"labels_{parcellation}_{n_subjects_found}_subjects.pkl", "wb") as f:
     pickle.dump(labels_list, f)
