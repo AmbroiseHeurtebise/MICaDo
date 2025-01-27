@@ -2,11 +2,17 @@ import numpy as np
 import pickle
 from time import time
 from pathlib import Path
+import os
 from mvica_lingam.mvica_lingam import mvica_lingam
 
 
+# Limit the number of jobs
+os.environ["OMP_NUM_THREADS"] = "4"
+os.environ["MKL_NUM_THREADS"] = "4"
+os.environ["NUMEXPR_NUM_THREADS"] = "4"
+
 # Parameters
-n_subjects = 3
+n_subjects = 154
 parcellation = "aparc"
 n_labels = 10
 
@@ -28,6 +34,7 @@ for i in range(len(labels_list)):
         X.append(X_list[i])
         labels = labels_list[i]
 X = np.array(X)
+n_subjects_full = len(X)  # may be lower than n_subjects
 
 # Apply our method
 start = time()
@@ -39,10 +46,10 @@ print(f"The method took {execution_time:.2f} s.")
 B = P.T @ T @ P
 
 # Save data
-save_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects}_subjects")
+save_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects_full}_subjects")
 save_dir.mkdir(parents=True, exist_ok=True)
 np.save(save_dir / "P.npy", P)
 np.save(save_dir / "T.npy", T)
 np.save(save_dir / "B.npy", B)
-with open(save_dir / f"labels_{parcellation}_{n_subjects}_subjects.pkl", "wb") as f:
+with open(save_dir / f"labels.pkl", "wb") as f:
     pickle.dump(labels, f)
