@@ -15,6 +15,7 @@ os.environ["NUMEXPR_NUM_THREADS"] = "4"
 n_subjects = 154
 parcellation = "aparc"
 n_labels = 10
+subset = True
 
 # Load data
 expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
@@ -35,6 +36,15 @@ for i in range(len(labels_list)):
         labels = labels_list[i]
 X = np.array(X)
 n_subjects_full = len(X)  # may be lower than n_subjects
+
+# Remove subjects who have a strange envelope
+if subset and parcellation == "aparc":
+    idx_remove = [
+        8, 11, 17, 32, 36, 66, 71, 95, 99, 126, 133, 146, 3, 5, 6, 7, 9, 10, 23, 27, 28, 31, 33, 37, 38,
+        44,47, 57, 65, 76, 78, 79, 96, 97, 105, 106, 112, 116, 117, 119, 125, 128, 132, 141, 143, 145]
+    idx = list(set(np.arange(n_subjects_full)) - set(idx_remove))
+    X = X[idx]
+    n_subjects_full = len(X)
 
 # Apply our method
 start = time()
