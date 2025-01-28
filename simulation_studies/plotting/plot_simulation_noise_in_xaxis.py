@@ -18,7 +18,7 @@ rc = {
 plt.rcParams.update(rc)
 
 # parameters 
-nb_seeds = 3  # 50
+nb_seeds = 50
 nb_gaussian_sources_list = [4, 0, 2]
 errors = ["amari_distance", "error_T", "error_P"]
 error_names = ["Amari distance", "Error on T", "Error rate on P"]
