@@ -21,67 +21,69 @@ def sample_data(m, p, n, nb_gaussian_sources=0, rng=None):
         sigmas[:, -nb_gaussian_sources:] = rng.uniform(size=(m, nb_gaussian_sources))
     N = rng.normal(scale=sigmas[:, :, np.newaxis], size=(m, p, n))
 
-    # causal effect matrices
-    B = rng.normal(size=(m, p, p))
+    # causal effect matrices T
+    T = rng.normal(size=(m, p, p))
     for i in range(m):
-        B[i][np.triu_indices(p, k=0)] = 0  # set the strictly upper triangular part to 0
+        T[i][np.triu_indices(p, k=0)] = 0  # set the strictly upper triangular part to 0
     
     # causal order
     P = np.eye(p)
     rng.shuffle(P)
 
+    # causal effect matrices B
+    B = P.T @ T @ P
+
     # mixing matrices
-    A = P.T @ np.linalg.inv(np.eye(p) - B) @ P
+    A = np.linalg.inv(np.eye(p) - B)
 
     # observations
     X = np.array([Ai @ Si for Ai, Si in zip(A, S + N)])
 
-    return X, P, B, A
+    return X, B, T, P, A
 
 
 def run_experiment(m, p, n, nb_gaussian_sources, random_state, ica_algo):
     rng = np.random.RandomState(random_state)
-    # generate observations X, causal order P, and causal effects B
-    X, P, B, A = sample_data(m, p, n, nb_gaussian_sources, rng)
+    # generate observations X, causal order P, and causal effects B and T
+    X, B, T, P, A = sample_data(m, p, n, nb_gaussian_sources, rng)
 
     # apply either our method, Multi Group DirectLiNGAM, or LiNGAM
     if ica_algo in ["multiviewica", "shica_j", "shica_ml"]:
-        # apply our main function to retrieve P, B, and W
-        P_estimate, B_estimates, _, _, W_estimates = mvica_lingam(
+        # apply our main function to retrieve B, T, P, and W
+        B_estimates, T_estimates, P_estimate, _, W_estimates = mvica_lingam(
             X, ica_algo=ica_algo, random_state=random_state)
     elif ica_algo == "multi_group_direct_lingam":
-        # apply Multi Group DirectLiNGAM to retrieve P, B, and W
+        # apply Multi Group DirectLiNGAM to retrieve B, T, P, and W
         model = lingam.MultiGroupDirectLiNGAM()
         model.fit(list(np.swapaxes(X, 1, 2)))
         # causal order P
         P_estimate = np.eye(p)[model.causal_order_]
-        # causal effect matrices B
-        B_s_estimates = np.array(model.adjacency_matrices_)
-        B_estimates = P_estimate @ B_s_estimates @ P_estimate.T
+        # causal effect matrices B and T
+        B_estimates = np.array(model.adjacency_matrices_)
+        T_estimates = P_estimate @ B_estimates @ P_estimate.T
         # reconstruct what would be unmixing matrices W
-        W_estimates = P_estimate.T @ (np.eye(p) - B_estimates) @ P_estimate
+        W_estimates = np.eye(p) - B_estimates
     elif ica_algo == "lingam":
-        # apply LiNGAM to retrieve P, B, and W
-        P_estimates = []
-        B_s_estimates = []
+        # apply LiNGAM to retrieve B, T, P, and W
         B_estimates = []
+        T_estimates = []
+        P_estimates = []
         model = lingam.ICALiNGAM()
         for i in range(m):
             model.fit(np.swapaxes(X[i], 0, 1))    
             # causal order P
             P_estimate = np.eye(p)[model.causal_order_]
             P_estimates.append(P_estimate)
-            # causal effect matrix B
-            B_s_estimate = np.array(model._adjacency_matrix)
-            B_s_estimates.append(B_s_estimate)
-            B_estimate = P_estimate @ B_s_estimate @ P_estimate.T
+            # causal effect matrices B and T
+            B_estimate = np.array(model._adjacency_matrix)
             B_estimates.append(B_estimate)
-        P_estimates = np.array(P_estimates)  # shape (m, p, p) and not (p, p)
-        B_s_estimates = np.array(B_s_estimates)
+            T_estimate = P_estimate @ B_estimate @ P_estimate.T
+            T_estimates.append(T_estimate)
         B_estimates = np.array(B_estimates)
+        T_estimates = np.array(T_estimates)
+        P_estimates = np.array(P_estimates)  # shape (m, p, p) and not (p, p)
         # reconstruct unmixing matrices W
-        W_estimates = np.array(
-            [Pi.T @ I_Bi @ Pi for Pi, I_Bi in zip(P_estimates, np.eye(p) - B_estimates)])
+        W_estimates = np.eye(p) - B_estimates
     else:
         raise ValueError("Wrong ica_algo.")
     
@@ -91,6 +93,7 @@ def run_experiment(m, p, n, nb_gaussian_sources, random_state, ica_algo):
     else:
         error_P = np.mean([1 - (Pi == P).all() for Pi in P_estimates])
     error_B = np.mean((B_estimates - B) ** 2)
+    error_T = np.mean((T_estimates - T) ** 2)
     amari = np.mean([amari_distance(Wi, Ai) for Wi, Ai in zip(W_estimates, A)])
     
     # output
@@ -99,8 +102,9 @@ def run_experiment(m, p, n, nb_gaussian_sources, random_state, ica_algo):
         "nb_gaussian_sources": nb_gaussian_sources,
         "n": n,
         "random_state": random_state,
-        "error_P": error_P,
         "error_B": error_B,
+        "error_T": error_T,
+        "error_P": error_P,
         "amari_distance": amari,
     }
     return output
@@ -113,10 +117,10 @@ N_JOBS = 10
 
 # varying parameters
 nb_gaussian_sources_list = [0, 2, 4]
-nb_seeds = 50
+nb_seeds = 3  # 50
 random_state_list = np.arange(nb_seeds)
 n_list = np.logspace(2, 4, 21, dtype=int)
-algo_list = ["lingam"]  # ["multiviewica", "shica_j", "shica_ml", "multi_group_direct_lingam", "lingam"]
+algo_list = ["multiviewica", "shica_j", "shica_ml", "multi_group_direct_lingam", "lingam"]
 
 # run experiment
 nb_expes = len(nb_gaussian_sources_list) * len(random_state_list) * len(n_list) * len(algo_list)
@@ -138,9 +142,8 @@ df = pd.DataFrame(dict_res)
 print(df)
 
 # save dataframe
-results_dir = "/storage/store2/work/aheurteb/mvica_lingam/experiments/results/fig2_shica/"
-# results_dir = "/Users/ambroiseheurtebise/Desktop/mvica_lingam/experiments/results/fig2_shica/"
-save_name = f"DataFrame_with_{nb_seeds}_seeds_lingam"
+results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/shared_P/"
+save_name = f"DataFrame_with_{nb_seeds}_seeds_with_4_metrics"
 save_path = results_dir + save_name
 df.to_csv(save_path, index=False)
 print("\n####################################### End #######################################")

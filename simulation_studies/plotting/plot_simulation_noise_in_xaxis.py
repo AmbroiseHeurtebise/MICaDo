@@ -18,10 +18,10 @@ rc = {
 plt.rcParams.update(rc)
 
 # parameters 
-nb_seeds = 50
+nb_seeds = 3  # 50
 nb_gaussian_sources_list = [4, 0, 2]
-errors = ["amari_distance", "error_B", "error_P"]
-error_names = ["Amari distance", "Error on B", "Error rate on P"]
+errors = ["amari_distance", "error_T", "error_P"]
+error_names = ["Amari distance", "Error on T", "Error rate on P"]
 titles = ["Gaussian", "Non-Gaussian", "Half-G / Half-NG"]
 estimator = "mean"
 labels = [
@@ -30,7 +30,7 @@ labels = [
 
 # read dataframe
 results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/noise_in_xaxis/"
-save_name = f"DataFrame_with_{nb_seeds}_seeds"
+save_name = f"DataFrame_with_{nb_seeds}_seeds_with_4_metrics"
 save_path = results_dir + save_name
 df = pd.read_csv(save_path)
 

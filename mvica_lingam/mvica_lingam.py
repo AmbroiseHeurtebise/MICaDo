@@ -43,15 +43,15 @@ def mvica_lingam(
     
     Returns
     -------
-    P : ndarray, shape (n_components, n_components)
-        Causal order represented by a permutation matrix.
-    
     B : ndarray, shape (n_views, n_components, n_components)
-        Causal effects represented by matrices B[i] as close as possible to
+        Causal effect matrices.
+
+    T : ndarray, shape (n_views, n_components, n_components)
+        Causal effects represented by matrices T[i] as close as possible to
         strictly lower triangular.
 
-    Sigmas: ndarray, shape (n_views, n_components)
-        Noise covariances.
+    P : ndarray, shape (n_components, n_components)
+        Causal order represented by a permutation matrix.
 
     S_avg: ndarray, shape (n_components, n_samples)
         Source estimates.
@@ -63,17 +63,16 @@ def mvica_lingam(
     
     # Step 1: use a multiview ICA algorithm
     if ica_algo == "shica_ml":
-        W, Sigmas, S_avg = shica_ml(X, max_iter=max_iter, tol=tol)
+        W, _, S_avg = shica_ml(X, max_iter=max_iter, tol=tol)
     elif ica_algo == "shica_j":
-        W, Sigmas, S_avg = shica_j(X, max_iter=max_iter, tol=tol)
+        W, _, S_avg = shica_j(X, max_iter=max_iter, tol=tol)
     elif ica_algo == "multiviewica":
         _, W, S_avg = multiviewica(
             X, max_iter=max_iter, tol=tol, random_state=random_state)
-        Sigmas = np.ones((m, p))
     else:
         raise ValueError(
             "ica_algo should be either 'shica_ml', 'shica_j', or 'multiviewica'")
-    
+
     # Step 2: find permutation Q
     W_inv = 1 / np.sum([np.abs(Wi.T) for Wi in W], axis=0)  # shape (p, p)
     _, index = linear_sum_assignment(W_inv)
@@ -84,33 +83,33 @@ def mvica_lingam(
     DQW = QW / D
 
     # Step 4: causal effects
-    B_hat = np.array([np.eye(p)] * m) - DQW  # B_hat is not yet lower triangular
+    B = np.array([np.eye(p)] * m) - DQW  # B is not lower triangular
 
     # Step 5: estimate the causal order with a simple method 
     # (instead of with least squares regression)
-    order = find_order(B_hat)
+    order = find_order(B)
     P = np.eye(p)[order]
-    B = P @ B_hat @ P.T
+    T = P @ B @ P.T
     
-    return P, B, Sigmas, S_avg, W
+    return B, T, P, S_avg, W
 
 
-def find_order(B_hat):
-    """This function finds a permutation P such that P @ B_hat @ P.T
+def find_order(B):
+    """This function finds a permutation P such that P @ B @ P.T
     is as close as possible to strictly lower triangular.
 
     Args:
-        B_hat : ndarray, shape (m, p, p)
-            Causal effect matrices, whose rows and columns are permuted
-            by a common permutation P. We assume that ``B_hat`` is such that 
-            P @ B_hat @ P.T are close to strictly lower triangular.
+        B : ndarray, shape (m, p, p)
+            Causal effect matrices, whose rows and columns will be permuted
+            by a common permutation P. We assume that ``B`` is such that 
+            P @ Bi @ P.T are close to strictly lower triangular.
 
     Returns:
         order: ndarray, shape (p,)
             ``order`` represents the permutation in P.
     """
-    _, p, _ = B_hat.shape
-    B_avg = np.mean(np.abs(B_hat), axis=0)
+    _, p, _ = B.shape
+    B_avg = np.mean(np.abs(B), axis=0)
     B_sort = np.sort(B_avg, axis=1)[:, ::-1]
     B_argsort = np.argsort(B_sort, axis=0)
     order = []
