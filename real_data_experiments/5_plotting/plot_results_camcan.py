@@ -8,9 +8,9 @@ from pathlib import Path
 
 # %%
 # Parameters
-n_subjects = 3
+n_subjects = 149
 parcellation = "aparc"
-n_arrows = 5
+n_arrows = 10
 
 # Load results
 expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
@@ -18,7 +18,7 @@ results_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects}_subjects"
 P = np.load(results_dir / "P.npy")
 T = np.load(results_dir / "T.npy")
 B = np.load(results_dir / "B.npy")
-with open(results_dir / f"labels_{parcellation}_{n_subjects}_subjects.pkl", "rb") as f:
+with open(results_dir / f"labels.pkl", "rb") as f:
     labels = pickle.load(f)
 
 # %%
@@ -29,13 +29,23 @@ plt.title("Average absolute value lower triangular matrix T")
 plt.show()
 
 # %%
-# Plot average adjacency matrix
+# Normalize matrices Bi: divide each Bi by its max in absolute value
+B_maxs = np.array([np.max(Bi_abs) for Bi_abs in np.abs(B)])[:, np.newaxis, np.newaxis]
+B_norm = B / B_maxs
+B_avg = np.mean(B_norm, axis=0)
+
+# %%
+# Choose random subject (bads: 12, 30, 62, 68, 88, 138)
+idx = np.random.randint(0, n_subjects)
+B_avg = B[idx]
+
+# %%
+# Plot average normalized adjacency matrix
 fig, ax = plt.subplots()
-B_avg = np.mean(B, axis=0)
 norm = TwoSlopeNorm(vmin=np.min(B_avg), vmax=np.max(B_avg), vcenter=0)
 plt.imshow(B_avg, norm=norm, cmap="coolwarm")
 plt.colorbar()
-plt.title("Average adjacency matrix B")
+plt.title("Average normalized adjacency matrix B")
 label_names = [label.name for label in labels]
 ax.set_xticks(np.arange(len(label_names)))
 ax.set_yticks(np.arange(len(label_names)))
@@ -71,6 +81,4 @@ order = np.argmax(P, axis=1)
 labels_ordered = [label_names[order[i]] for i in range(len(label_names))]
 labels_ordered
 
-# %%
-B_avg
 # %%
