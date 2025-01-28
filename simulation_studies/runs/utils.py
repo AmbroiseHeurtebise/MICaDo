@@ -6,7 +6,9 @@ from mvica_lingam.mvica_lingam import mvica_lingam
 
 # function that samples data according to our model
 # we use similar parameters as in Fig. 2 of the ShICA paper
-def sample_data(m, p, n, noise_level=1., nb_gaussian_sources=0, rng=None):
+def sample_data(
+    m, p, n, noise_level=1., nb_gaussian_sources=0, rng=None, shared_permutation=True,
+):
     # sources
     S_ng = rng.laplace(size=(p-nb_gaussian_sources, n))
     S_g = rng.normal(size=(nb_gaussian_sources, n))
@@ -21,10 +23,17 @@ def sample_data(m, p, n, noise_level=1., nb_gaussian_sources=0, rng=None):
     for i in range(m):
         T[i][np.triu_indices(p, k=0)] = 0  # set the strictly upper triangular part to 0
     # causal order
-    P = np.eye(p)
-    rng.shuffle(P)
+    if shared_permutation:
+        # P = np.eye(p)
+        # rng.shuffle(P)
+        P = np.eye(p)[rng.permutation(p)]
+    else:
+        P = np.array([np.eye(p)[rng.permutation(p)] for _ in range(m)])
     # causal effect matrices B
-    B = P.T @ T @ P
+    if shared_permutation:
+        B = P.T @ T @ P
+    else:
+        B = np.array([Pi.T @ Ti @ Pi for Pi, Ti in zip(P, T)])
     # mixing matrices
     A = np.linalg.inv(np.eye(p) - B)
     # observations
@@ -33,17 +42,35 @@ def sample_data(m, p, n, noise_level=1., nb_gaussian_sources=0, rng=None):
 
 
 def run_experiment(
-    m, p, n, nb_gaussian_sources, random_state, ica_algo, noise_level=1.
+    m,
+    p,
+    n,
+    nb_gaussian_sources,
+    random_state,
+    ica_algo,
+    noise_level=1.,
+    shared_permutation=True,
 ):
     rng = np.random.RandomState(random_state)
-    # generate observations X, causal order P, and causal effects B and T
-    X, B, T, P, A = sample_data(m, p, n, noise_level, nb_gaussian_sources, rng)
+    # generate observations X, causal order(s) P, and causal effects B and T
+    X, B, T, P, A = sample_data(
+        m=m,
+        p=p,
+        n=n,
+        noise_level=noise_level,
+        nb_gaussian_sources=nb_gaussian_sources,
+        rng=rng,
+        shared_permutation=shared_permutation,
+    )
 
     # apply either our method, Multi Group DirectLiNGAM, or LiNGAM
     if ica_algo in ["multiviewica", "shica_j", "shica_ml"]:
-        # apply our main function to retrieve B, T, P, and W
+        # apply our main function to retrieve B, T, P, and W;
         B_estimates, T_estimates, P_estimate, _, W_estimates = mvica_lingam(
-            X, ica_algo=ica_algo, random_state=random_state)
+            X, shared_permutation=shared_permutation, ica_algo=ica_algo,
+            random_state=random_state)
+        if not shared_permutation:
+            P_estimates = P_estimate  # shape (m, p, p)
     elif ica_algo == "multi_group_direct_lingam":
         # apply Multi Group DirectLiNGAM to retrieve B, T, P, and W
         model = lingam.MultiGroupDirectLiNGAM()
@@ -80,10 +107,22 @@ def run_experiment(
         raise ValueError("Wrong ica_algo.")
     
     # errors
-    if ica_algo != "lingam":
-        error_P = 1 - (P_estimate == P).all()
+    if shared_permutation:
+        # P has shape (p, p)
+        if ica_algo == "lingam":
+            # P_estimates has shape (m, p, p)
+            error_P = np.mean([1 - (Pe == P).all() for Pe in P_estimates])
+        else:
+            # P_estimate has shape (p, p)
+            error_P = 1 - (P_estimate == P).all()
     else:
-        error_P = np.mean([1 - (Pi == P).all() for Pi in P_estimates])
+        # P has shape (m, p, p)
+        if ica_algo == "multi_group_direct_lingam":
+            # P_estimate has shape (p, p)
+            error_P = np.mean([1 - (P_estimate == Pi).all() for Pi in P])
+        else:
+            # P_estimates has shape (m, p, p)
+            error_P = np.mean([1 - (Pe == Pi).all() for Pe, Pi in zip(P_estimates, P)])
     error_B = np.mean((B_estimates - B) ** 2)
     error_B_abs = np.mean(np.abs(B_estimates - B))
     error_T = np.mean((T_estimates - T) ** 2)

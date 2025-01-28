@@ -5,11 +5,16 @@ from joblib import Parallel, delayed
 from utils import run_experiment
 
 
+# limit number of jobs
+N_JOBS = 4
+os.environ["OMP_NUM_THREADS"] = str(N_JOBS)
+os.environ["MKL_NUM_THREADS"] = str(N_JOBS)
+os.environ["NUMEXPR_NUM_THREADS"] = str(N_JOBS)
+
 # fixed parameters
 m = 5
 p = 4
 n = 1000
-N_JOBS = 4
 
 # varying parameters
 nb_gaussian_sources_list = [0, 2, 4]

@@ -1,14 +1,21 @@
 import numpy as np
 import pandas as pd
+import os
 from itertools import product
 from joblib import Parallel, delayed
 from utils import run_experiment
 
 
+# limit the number of jobs
+N_JOBS = 4
+os.environ["OMP_NUM_THREADS"] = str(N_JOBS)
+os.environ["MKL_NUM_THREADS"] = str(N_JOBS)
+os.environ["NUMEXPR_NUM_THREADS"] = str(N_JOBS)
+
 # fixed parameters
 m = 5
 p = 4
-N_JOBS = 4
+shared_permutation = False
 
 # varying parameters
 nb_gaussian_sources_list = [0, 2, 4]
@@ -29,6 +36,7 @@ dict_res = Parallel(n_jobs=N_JOBS)(
         nb_gaussian_sources=nb_gaussian_sources,
         random_state=random_state,
         ica_algo=ica_algo,
+        shared_permutation=shared_permutation,
     ) for n, nb_gaussian_sources, random_state, ica_algo
     in product(n_list, nb_gaussian_sources_list, random_state_list, algo_list)
 )
@@ -37,8 +45,12 @@ df = pd.DataFrame(dict_res)
 print(df)
 
 # save dataframe
-results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/shared_P/"
+results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/"
+if shared_permutation:
+    parent_dir = "shared_P/"
+else:
+    parent_dir = "multiple_Pi/"
 save_name = f"DataFrame_with_{nb_seeds}_seeds_and_4_metrics"
-save_path = results_dir + save_name
+save_path = results_dir + parent_dir + save_name
 df.to_csv(save_path, index=False)
 print("\n####################################### End #######################################")
