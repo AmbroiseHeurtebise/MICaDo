@@ -93,7 +93,9 @@ def run_experiment(m, p, n, noise_level, nb_gaussian_sources, random_state, ica_
     else:
         error_P = np.mean([1 - (Pi == P).all() for Pi in P_estimates])
     error_B = np.mean((B_estimates - B) ** 2)
+    error_B_abs = np.mean(np.abs(B_estimates - B))
     error_T = np.mean((T_estimates - T) ** 2)
+    error_T_abs = np.mean(np.abs(T_estimates - T))
     amari = np.mean([amari_distance(Wi, Ai) for Wi, Ai in zip(W_estimates, A)])
     
     # output
@@ -103,7 +105,9 @@ def run_experiment(m, p, n, noise_level, nb_gaussian_sources, random_state, ica_
         "noise_level": noise_level,
         "random_state": random_state,
         "error_B": error_B,
+        "error_B_abs": error_B_abs,
         "error_T": error_T,
+        "error_T_abs": error_T_abs,
         "error_P": error_P,
         "amari_distance": amari,
     }
@@ -146,7 +150,7 @@ print(df)
 
 # save dataframe
 results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/noise_in_xaxis/"
-save_name = f"DataFrame_with_{nb_seeds}_seeds_with_4_metrics"
+save_name = f"DataFrame_with_{nb_seeds}_seeds_and_4_metrics"
 save_path = results_dir + save_name
 df.to_csv(save_path, index=False)
 print("\n####################################### End #######################################")
