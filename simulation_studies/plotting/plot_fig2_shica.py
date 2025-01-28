@@ -100,5 +100,5 @@ fig.legend(
 
 # save figure
 figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/figures/"
-plt.savefig(figures_dir + "fig2_shica.pdf", bbox_inches="tight")
+plt.savefig(figures_dir + "simulation_shared_P.pdf", bbox_inches="tight")
 plt.show()

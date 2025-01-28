@@ -9,3 +9,6 @@ __pycache__
 
 # Ignore .egg-info
 *.egg-info
+
+# Data envelopes directory
+real_data_experiments/2_data_envelopes/
