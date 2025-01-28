@@ -10,6 +10,7 @@ from shica import shica_j, shica_ml
 
 def mvica_lingam(
     X,
+    shared_permutation=True,
     ica_algo="shica_ml",
     max_iter=3000,
     tol=1e-8,
@@ -23,7 +24,11 @@ def mvica_lingam(
         Training data, where ``n_views`` is the number of views, 
         ``n_components`` is the number of components, and ``n_samples`` is
         the number of samples.
-    
+
+    shared_permutation : bool (default=True)
+        Whether we estimate a causal order common to all views, or
+        one causal order per view.
+
     ica_algo : string, optional (default="shica_ml")
         The multiview ICA algorithm used in the first step.
         It can be either ``shica_ml``, ``shica_j``, or ``multiviewica``.
@@ -31,16 +36,16 @@ def mvica_lingam(
             ``shica_ml``: max_iter=3000; tol=1e-8
             ``shica_j``: max_iter=10000; tol=1e-5
             ``multiviewica``: max_iter=1000; tol=1e-3.
-    
+
     max_iter : int, optional (default=3000)
         The maximum number of iterations of the multiview ICA algorithm.
-    
+
     tol : float, optional (default=1e-8)
         The tolerance parameter of the multiview ICA algorithm.
-    
+
     random_state : int, optional (default=None)
         ``random_state`` is the seed used by the random number generator.
-    
+
     Returns
     -------
     B : ndarray, shape (n_views, n_components, n_components)
@@ -50,8 +55,9 @@ def mvica_lingam(
         Causal effects represented by matrices T[i] as close as possible to
         strictly lower triangular.
 
-    P : ndarray, shape (n_components, n_components)
-        Causal order represented by a permutation matrix.
+    P : ndarray, shape (n_components, n_components) or (n_views, n_components, n_components)
+        Causal order(s) represented by a permutation matrix or multiple permutation 
+        matrices, depending on ``shared_permutation``.
 
     S_avg: ndarray, shape (n_components, n_samples)
         Source estimates.
@@ -85,32 +91,40 @@ def mvica_lingam(
     # Step 4: causal effects
     B = np.array([np.eye(p)] * m) - DQW  # B is not lower triangular
 
-    # Step 5: estimate the causal order with a simple method 
-    # (instead of with least squares regression)
-    order = find_order(B)
-    P = np.eye(p)[order]
-    T = P @ B @ P.T
-    
+    # Step 5: estimate causal order(s) with a simple method
+    if shared_permutation:
+        B_avg = np.mean(np.abs(B), axis=0)
+        order = find_order(B_avg)
+        P = np.eye(p)[order]
+        T = P @ B @ P.T
+    else:
+        P = np.zeros((m, p, p))
+        for i in range(m):
+            order = find_order(B[i])
+            P[i] = np.eye(p)[order]
+        T = np.array([Pi @ Bi @ Pi.T for Pi, Bi in zip(P, B)])
+
     return B, T, P, S_avg, W
 
 
 def find_order(B):
-    """This function finds a permutation P such that P @ B @ P.T
+    """This function finds a permutation matrix P such that P @ B @ P.T
     is as close as possible to strictly lower triangular.
 
-    Args:
-        B : ndarray, shape (m, p, p)
-            Causal effect matrices, whose rows and columns will be permuted
-            by a common permutation P. We assume that ``B`` is such that 
-            P @ Bi @ P.T are close to strictly lower triangular.
+    Parameters
+    ----------
+    B : ndarray, shape (p, p)
+        Causal effect matrix, whose rows and columns will be permuted
+        by a permutation P. We assume that ``B`` is such that 
+        P @ B @ P.T is close to strictly lower triangular.
 
-    Returns:
-        order: ndarray, shape (p,)
-            ``order`` represents the permutation in P.
+    Returns
+    -------
+    order: ndarray, shape (p,)
+        ``order`` represents the permutation in P.
     """
-    _, p, _ = B.shape
-    B_avg = np.mean(np.abs(B), axis=0)
-    B_sort = np.sort(B_avg, axis=1)[:, ::-1]
+    p = len(B)
+    B_sort = np.sort(B, axis=1)[:, ::-1]
     B_argsort = np.argsort(B_sort, axis=0)
     order = []
     for i in range(p):
