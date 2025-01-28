@@ -76,7 +76,7 @@ def run_experiment(m, p, n, noise_level, nb_gaussian_sources, random_state, ica_
             P_estimates.append(P_estimate)
             # causal effect matrix B and T
             B_estimate = np.array(model._adjacency_matrix)
-            B_estimates.append(B_s_estimate)
+            B_estimates.append(B_estimate)
             T_estimate = P_estimate @ B_estimate @ P_estimate.T
             T_estimates.append(T_estimate)
         B_estimates = np.array(B_estimates)
@@ -118,11 +118,11 @@ def run_experiment(m, p, n, noise_level, nb_gaussian_sources, random_state, ica_
 m = 5
 p = 4
 n = 1000
-N_JOBS = 5
+N_JOBS = 4
 
 # varying parameters
 nb_gaussian_sources_list = [0, 2, 4]
-nb_seeds = 3  # 50
+nb_seeds = 50
 random_state_list = np.arange(nb_seeds)
 noise_level_list = np.logspace(-2, 2, 21)
 algo_list = ["multiviewica", "shica_j", "shica_ml", "multi_group_direct_lingam", "lingam"]
