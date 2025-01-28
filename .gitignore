@@ -10,5 +10,8 @@ __pycache__
 # Ignore .egg-info
 *.egg-info
 
-# Data envelopes directory
+# Data envelopes directory (which contains .npz files)
 real_data_experiments/2_data_envelopes/
+
+# Temporary files
+*tmp.py
