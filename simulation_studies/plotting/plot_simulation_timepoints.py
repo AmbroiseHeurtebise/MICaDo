@@ -71,10 +71,10 @@ for i, ax in enumerate(axes.flat):
     ax.set_xscale("log")
     if i // 3 != 2:
         ax.set_yscale("log")
-    # correct ylim in the second row
-    if i == 3:
+    # correct ylim in first and second rows
+    if i == 0 or i == 3:
         ymin, ymax = ax.get_ylim()
-        ax.set_ylim(ymin, 1e2)  # instead of 1e3
+        ax.set_ylim(ymin, 1e2)
     # ylabel
     ax.set_xlabel("")
     ax.set_ylabel("")
