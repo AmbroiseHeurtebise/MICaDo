@@ -64,6 +64,6 @@ expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experimen
 save_dir = expes_dir / f"2_data_envelopes/{parcellation}_{n_subjects_found}_subjects"
 save_dir.mkdir(parents=True, exist_ok=True)
 
-np.savez(save_dir / f"X_{parcellation}_{n_subjects_found}_subjects.npz", *X_list)
-with open(save_dir / f"labels_{parcellation}_{n_subjects_found}_subjects.pkl", "wb") as f:
+np.savez(save_dir / f"X.npz", *X_list)
+with open(save_dir / f"labels.pkl", "wb") as f:
     pickle.dump(labels_list, f)

@@ -8,13 +8,17 @@ from pathlib import Path
 
 # %%
 # Parameters
-n_subjects = 149
+n_subjects = 103
 parcellation = "aparc"
 n_arrows = 10
+only_clean = True
 
 # Load results
 expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
-results_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects}_subjects")
+if only_clean:
+    results_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects}_subjects_clean")
+else:
+    results_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects}_subjects")
 P = np.load(results_dir / "P.npy")
 T = np.load(results_dir / "T.npy")
 B = np.load(results_dir / "B.npy")
