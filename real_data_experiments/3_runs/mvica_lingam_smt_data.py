@@ -7,15 +7,16 @@ from mvica_lingam.mvica_lingam import mvica_lingam
 
 
 # Limit the number of jobs
-os.environ["OMP_NUM_THREADS"] = "4"
-os.environ["MKL_NUM_THREADS"] = "4"
-os.environ["NUMEXPR_NUM_THREADS"] = "4"
+N_JOBS = 8
+os.environ["OMP_NUM_THREADS"] = str(N_JOBS)
+os.environ["MKL_NUM_THREADS"] = str(N_JOBS)
+os.environ["NUMEXPR_NUM_THREADS"] = str(N_JOBS)
 
 # Parameters
-n_subjects = 154
-parcellation = "aparc"
+n_subjects = 152
+parcellation = "aparc_sub"
 n_labels = 10
-subset = True
+subset = False
 
 # Load data
 expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
@@ -29,21 +30,55 @@ with open(load_dir / f"labels.pkl", "rb") as f:
     labels_list = pickle.load(f)
 
 # Only keep subjects that have ``n_labels`` labels
-X = []
-for i in range(len(labels_list)):
-    if len(labels_list[i]) == n_labels:
-        X.append(X_list[i])
-        labels = labels_list[i]
-X = np.array(X)
-n_subjects_full = len(X)  # may be lower than n_subjects
+if parcellation == "aparc":
+    X = []
+    for i in range(len(labels_list)):
+        if len(labels_list[i]) == n_labels:
+            X.append(X_list[i])
+            labels = labels_list[i]
+    X = np.array(X)
+    n_subjects_full = len(X)  # may be lower than n_subjects
 
-# Remove subjects who have a strange envelope
-if subset and parcellation == "aparc":
-    idx_remove = [
-        8, 11, 17, 32, 36, 66, 71, 95, 99, 126, 133, 146, 3, 5, 6, 7, 9, 10, 23, 27, 28, 31, 33, 37, 38,
-        44,47, 57, 65, 76, 78, 79, 96, 97, 105, 106, 112, 116, 117, 119, 125, 128, 132, 141, 143, 145]
-    idx = list(set(np.arange(n_subjects_full)) - set(idx_remove))
-    X = X[idx]
+    # Remove subjects who have a strange envelope
+    if subset:
+        idx_remove = [
+            8, 11, 17, 32, 36, 66, 71, 95, 99, 126, 133, 146, 3, 5, 6, 7, 9, 10, 23, 27, 28, 31, 33, 37, 38,
+            44,47, 57, 65, 76, 78, 79, 96, 97, 105, 106, 112, 116, 117, 119, 125, 128, 132, 141, 143, 145]
+        idx = list(set(np.arange(n_subjects_full)) - set(idx_remove))
+        X = X[idx]
+        n_subjects_full = len(X)
+elif parcellation =="aparc_sub":
+    # Get all 38 labels
+    i = 0
+    while len(labels_list[i]) < n_labels:
+        i+=1
+    labels = labels_list[i]
+    label_to_idx = {label: idx for idx, label in enumerate(labels)}
+
+    # Keep only 10 regions
+    selected_label_names = [
+        'superiortemporal_3-lh',
+        'superiortemporal_5-rh',
+        'pericalcarine_1-lh',
+        'pericalcarine_4-rh',
+        'postcentral_6-lh',
+        'postcentral_8-lh',
+        'postcentral_7-rh',
+        'postcentral_8-rh',
+        'precentral_11-lh',
+        'precentral_7-rh',
+    ]
+
+    # Only keep subjects who have all these regions available
+    X = []
+    for X_current, labels_current in zip(X_list, labels_list):
+        label_names_current = {label.name for label in labels_current}
+        if all(name in label_names_current for name in selected_label_names):
+            label_to_row = {label.name: row for label, row in zip(labels_current, X_current)}
+            filtered_X = np.array([label_to_row[name] for name in selected_label_names])
+            X.append(filtered_X)
+    X = np.array(X)  # shape (98, 10, 1760)
+    labels = [label for label in labels if label.name in selected_label_names]
     n_subjects_full = len(X)
 
 # Apply our method
