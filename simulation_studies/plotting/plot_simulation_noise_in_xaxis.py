@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import seaborn as sns
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning, module="seaborn")
@@ -24,32 +25,44 @@ error_names = ["Amari distance", "Error on B", "Error rate on P"]
 titles = ["Gaussian", "Non-Gaussian", "Half-G / Half-NG"]
 estimator = "mean"
 labels = [
-    'MVICA-LiNGAM', 'ShICA-J-LiNGAM', 'ShICA-ML-LiNGAM', 'MultiGroupDirectLiNGAM',
-    'LiNGAM']
+    'ShICA-ML-LiNGAM', 'ShICA-J-LiNGAM', 'LiNGAM', 'MultiGroupDirectLiNGAM',
+    'MVICA-LiNGAM']
 
 # read dataframe
-results_dir = "/storage/store2/work/aheurteb/mvica_lingam/experiments/results/noise_in_xaxis/"
+results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/noise_in_xaxis/"
 save_name = f"DataFrame_with_{nb_seeds}_seeds"
 save_path = results_dir + save_name
 df = pd.read_csv(save_path)
+
+# remove MVICA LiNGAM curve
+filtered_df = df  # df[df["ica_algo"] != "multiviewica"]
+
+# change the curves order
+hue_order = ["shica_ml", "shica_j", "lingam", "multi_group_direct_lingam", "multiviewica"]
+
+# specify line styles
+style_order = ["shica_ml", "shica_j", "lingam", "multi_group_direct_lingam", "multiviewica"]
 
 # subplots
 fig, axes = plt.subplots(3, 3, figsize=(12, 6), sharex="col", sharey="row")
 for i, ax in enumerate(axes.flat):
     # number of Gaussian sources; one for each of the 3 columns
     nb_gaussian_sources = nb_gaussian_sources_list[i % 3]
-    data = df[df["nb_gaussian_sources"] == nb_gaussian_sources]
+    data = filtered_df[filtered_df["nb_gaussian_sources"] == nb_gaussian_sources]
     # error; one for each of the 3 rows
     y = errors[i // 3]
     # subplot
     if i // 3 != 2 and estimator == "median":
         sns.lineplot(
             data=data, x="noise_level", y=y, linewidth=2.5, hue="ica_algo", estimator=np.mean,
-            ax=ax, errorbar=lambda x: (np.quantile(x, 0.025), np.quantile(x, 0.975)))
+            ax=ax, errorbar=lambda x: (np.quantile(x, 0.025), np.quantile(x, 0.975)),
+            hue_order=hue_order, style_order=style_order, style="ica_algo",
+            dashes=['', '', (2, 2), (2, 2), ''])
     else:
         sns.lineplot(
             data=data, x="noise_level", y=y, linewidth=2.5, hue="ica_algo", ax=ax,
-            errorbar=('ci', 95))
+            errorbar=('ci', 95), hue_order=hue_order, style_order=style_order,
+            style="ica_algo", dashes=['', '', (2, 2), (2, 2), ''])
     # set axis in logscale, except for the yaxis of the middle row
     ax.set_xscale("log")
     if i // 3 != 2:
@@ -74,12 +87,20 @@ plt.gcf().align_labels()
 plt.tight_layout()
 plt.subplots_adjust(hspace=0.15)
 # legend
-handles, _ = ax.get_legend_handles_labels()
+palette = sns.color_palette()[:5]
+legend_styles = [
+    Line2D([0], [0], color=palette[0], linewidth=2.5, linestyle='-'),
+    Line2D([0], [0], color=palette[1], linewidth=2.5, linestyle='-'),
+    Line2D([0], [0], color=palette[2], linewidth=2.5, linestyle='--'),
+    Line2D([0], [0], color=palette[3], linewidth=2.5, linestyle='--'),
+    Line2D([0], [0], color=palette[4], linewidth=2.5, linestyle='-'),
+]
 fig.legend(
-    handles, labels, bbox_to_anchor=(0.5, 1.05), loc="center",
-    ncol=3, borderaxespad=0., fontsize=fontsize)
+    legend_styles, labels, bbox_to_anchor=(0.5, 1.05), loc="center",
+    ncol=3, borderaxespad=0., fontsize=fontsize
+)
 
 # save figure
-figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/experiments/figures/"
+figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/figures/"
 plt.savefig(figures_dir + "simulation_noise_in_xaxis.pdf", bbox_inches="tight")
 plt.show()
