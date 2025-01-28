@@ -21,11 +21,11 @@ subset = True
 expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
 load_dir = expes_dir / f"2_data_envelopes/{parcellation}_{n_subjects}_subjects"
 
-X_loaded = np.load(load_dir / f"X_{parcellation}_{n_subjects}_subjects.npz")
+X_loaded = np.load(load_dir / f"X.npz")
 X_list = [X_loaded[key] for key in X_loaded.files]
 
 # Load labels
-with open(load_dir / f"labels_{parcellation}_{n_subjects}_subjects.pkl", "rb") as f:
+with open(load_dir / f"labels.pkl", "rb") as f:
     labels_list = pickle.load(f)
 
 # Only keep subjects that have ``n_labels`` labels
@@ -48,12 +48,9 @@ if subset and parcellation == "aparc":
 
 # Apply our method
 start = time()
-P, T, _, _, _ = mvica_lingam(X)
+B, T, P, _, _ = mvica_lingam(X)
 execution_time = time() - start
 print(f"The method took {execution_time:.2f} s.")
-
-# Recover the adjacency matrix
-B = P.T @ T @ P
 
 # Save data
 save_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects_full}_subjects")
