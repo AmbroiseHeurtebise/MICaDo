@@ -20,17 +20,22 @@ plt.rcParams.update(rc)
 # parameters 
 nb_seeds = 50
 nb_gaussian_sources_list = [4, 0, 2]
-errors = ["error_B", "error_T", "error_P"]  # ["amari_distance", "error_T", "error_P"]
-error_names = ["Error on B", "Error on T", "Error rate on P"]  # ["Amari distance", "Error on T", "Error rate on P"]
+errors = ["error_B", "error_T", "error_P"]  # ["amari_distance"]
+error_names = ["Error on B", "Error on T", "Error rate on P"]  # ["Amari distance"]
 titles = ["Gaussian", "Non-Gaussian", "Half-G / Half-NG"]
 estimator = "mean"
 labels = [
     'ShICA-ML-LiNGAM', 'ShICA-J-LiNGAM', 'LiNGAM', 'MultiGroupDirectLiNGAM']
+shared_permutation = True
 
 # read dataframe
-results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/shared_P/"
-save_name = f"DataFrame_with_{nb_seeds}_seeds_and_4_metrics"
-save_path = results_dir + save_name
+results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/"
+if shared_permutation:
+    parent_dir = "shared_P"
+else:
+    parent_dir = "multiple_Pi"
+save_name = f"/DataFrame_with_{nb_seeds}_seeds_and_4_metrics"
+save_path = results_dir + parent_dir + save_name
 df = pd.read_csv(save_path)
 
 # remove MVICA LiNGAM curve
@@ -100,5 +105,5 @@ fig.legend(
 
 # save figure
 figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/figures/"
-plt.savefig(figures_dir + "simulation_shared_P.pdf", bbox_inches="tight")
+plt.savefig(figures_dir + f"simulation_{parent_dir}.pdf", bbox_inches="tight")
 plt.show()
