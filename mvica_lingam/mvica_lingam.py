@@ -15,6 +15,7 @@ def mvica_lingam(
     max_iter=3000,
     tol=1e-8,
     random_state=None,
+    new_find_order_function=True,
 ):
     """Implementation of ICA-based multiview LiNGAM model.
 
@@ -92,15 +93,19 @@ def mvica_lingam(
     B = np.array([np.eye(p)] * m) - DQW  # B is not lower triangular
 
     # Step 5: estimate causal order(s) with a simple method
+    if new_find_order_function:
+        find_permutation = find_order
+    else:
+        find_permutation = _estimate_causal_order
     if shared_permutation:
         B_avg = np.mean(np.abs(B), axis=0)
-        order = find_order(B_avg)
+        order = find_permutation(B_avg)
         P = np.eye(p)[order]
         T = P @ B @ P.T
     else:
         P = np.zeros((m, p, p))
         for i in range(m):
-            order = find_order(np.abs(B[i]))
+            order = find_permutation(np.abs(B[i]))
             P[i] = np.eye(p)[order]
         T = np.array([Pi @ Bi @ Pi.T for Pi, Bi in zip(P, B)])
 
@@ -133,3 +138,77 @@ def find_order(B):
         first_id = np.argmax(available_id)
         order.append(col[first_id])
     return order
+
+
+# functions from https://github.com/cdt15/lingam/blob/master/lingam/ica_lingam.py
+def _search_causal_order(matrix):
+    """Obtain a causal order from the given matrix strictly.
+
+    Parameters
+    ----------
+    matrix : array-like, shape (n_features, n_samples)
+        Target matrix.
+
+    Return
+    ------
+    causal_order : array, shape [n_features, ]
+        A causal order of the given matrix on success, None otherwise.
+    """
+    causal_order = []
+
+    row_num = matrix.shape[0]
+    original_index = np.arange(row_num)
+
+    while 0 < len(matrix):
+        # find a row all of which elements are zero
+        row_index_list = np.where(np.sum(np.abs(matrix), axis=1) == 0)[0]
+        if len(row_index_list) == 0:
+            break
+
+        target_index = row_index_list[0]
+
+        # append i to the end of the list
+        causal_order.append(original_index[target_index])
+        original_index = np.delete(original_index, target_index, axis=0)
+
+        # remove the i-th row and the i-th column from matrix
+        mask = np.delete(np.arange(len(matrix)), target_index, axis=0)
+        matrix = matrix[mask][:, mask]
+
+    if len(causal_order) != row_num:
+        causal_order = None
+
+    return causal_order
+
+
+def _estimate_causal_order(matrix):
+    """Obtain a lower triangular from the given matrix approximately.
+
+    Parameters
+    ----------
+    matrix : array-like, shape (n_features, n_samples)
+        Target matrix.
+
+    Return
+    ------
+    causal_order : array, shape [n_features, ]
+        A causal order of the given matrix on success, None otherwise.
+    """
+    causal_order = None
+
+    # set the m(m + 1)/2 smallest(in absolute value) elements of the matrix to zero
+    pos_list = np.argsort(np.abs(matrix), axis=None)
+    pos_list = np.vstack(np.unravel_index(pos_list, matrix.shape)).T
+    initial_zero_num = int(matrix.shape[0] * (matrix.shape[0] + 1) / 2)
+    for i, j in pos_list[:initial_zero_num]:
+        matrix[i, j] = 0
+
+    for i, j in pos_list[initial_zero_num:]:
+        causal_order = _search_causal_order(matrix)
+        if causal_order is not None:
+            break
+        else:
+            # set the smallest(in absolute value) element to zero
+            matrix[i, j] = 0
+
+    return causal_order
