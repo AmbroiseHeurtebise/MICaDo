@@ -20,8 +20,8 @@ plt.rcParams.update(rc)
 # parameters 
 nb_seeds = 50
 nb_gaussian_sources_list = [4, 0, 2]
-errors = ["amari_distance", "error_T", "error_P"]
-error_names = ["Amari distance", "Error on T", "Error rate on P"]
+errors = ["error_B", "error_T", "error_P"]
+error_names = [r"Error on $B^i$", r"Error on $T^i$", r"Error rate on $P$"]
 titles = ["Gaussian", "Non-Gaussian", "Half-G / Half-NG"]
 estimator = "mean"
 labels = [
