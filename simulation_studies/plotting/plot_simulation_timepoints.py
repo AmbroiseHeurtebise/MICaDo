@@ -18,9 +18,9 @@ rc = {
 plt.rcParams.update(rc)
 
 # parameters 
-nb_seeds = 50
+nb_seeds = 2
 nb_gaussian_sources_list = [4, 0, 2]
-shared_permutation = True
+shared_permutation = False
 errors = ["error_B", "error_T", "error_P"]
 if shared_permutation:
     error_names = [r"Error on $B^i$", r"Error on $T^i$", r"Error rate on $P$"]

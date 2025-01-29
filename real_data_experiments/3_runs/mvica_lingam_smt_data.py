@@ -15,7 +15,7 @@ os.environ["NUMEXPR_NUM_THREADS"] = str(N_JOBS)
 # Parameters
 n_subjects = 152
 parcellation = "aparc_sub"
-n_labels = 10
+n_labels = 38
 subset = False
 
 # Load data

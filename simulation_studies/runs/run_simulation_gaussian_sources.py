@@ -7,7 +7,7 @@ from utils import run_experiment
 
 
 # limit the number of jobs
-N_JOBS = 8
+N_JOBS = 4
 os.environ["OMP_NUM_THREADS"] = str(N_JOBS)
 os.environ["MKL_NUM_THREADS"] = str(N_JOBS)
 os.environ["NUMEXPR_NUM_THREADS"] = str(N_JOBS)
@@ -19,7 +19,7 @@ n = 1000
 
 # varying parameters
 nb_gaussian_sources_list = np.arange(p+1)
-nb_seeds = 2
+nb_seeds = 20
 random_state_list = np.arange(nb_seeds)
 algo_list = ["multiviewica", "shica_j", "shica_ml", "multi_group_direct_lingam", "lingam"]
 
