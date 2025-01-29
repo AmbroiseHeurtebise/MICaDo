@@ -100,7 +100,7 @@ def mvica_lingam(
     else:
         P = np.zeros((m, p, p))
         for i in range(m):
-            order = find_order(B[i])
+            order = find_order(np.abs(B[i]))
             P[i] = np.eye(p)[order]
         T = np.array([Pi @ Bi @ Pi.T for Pi, Bi in zip(P, B)])
 
