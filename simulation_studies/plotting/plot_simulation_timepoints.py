@@ -20,13 +20,16 @@ plt.rcParams.update(rc)
 # parameters 
 nb_seeds = 50
 nb_gaussian_sources_list = [4, 0, 2]
-errors = ["error_B", "error_T", "error_P"]  # ["amari_distance"]
-error_names = ["Error on B", "Error on T", "Error rate on P"]  # ["Amari distance"]
+shared_permutation = True
+errors = ["error_B", "error_T", "error_P"]
+if shared_permutation:
+    error_names = [r"Error on $B^i$", r"Error on $T^i$", r"Error rate on $P$"]
+else:
+    error_names = [r"Error on $B^i$", r"Error on $T^i$", r"Error rate on $P^i$"]
 titles = ["Gaussian", "Non-Gaussian", "Half-G / Half-NG"]
 estimator = "mean"
 labels = [
     'ShICA-ML-LiNGAM', 'ShICA-J-LiNGAM', 'LiNGAM', 'MultiGroupDirectLiNGAM']
-shared_permutation = True
 
 # read dataframe
 results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/"
