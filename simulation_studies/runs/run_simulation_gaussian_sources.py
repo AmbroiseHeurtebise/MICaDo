@@ -16,10 +16,11 @@ os.environ["NUMEXPR_NUM_THREADS"] = str(N_JOBS)
 m = 10
 p = 8
 n = 1000
+new_find_order_function = False
 
 # varying parameters
 nb_gaussian_sources_list = np.arange(p+1)
-nb_seeds = 20
+nb_seeds = 50
 random_state_list = np.arange(nb_seeds)
 algo_list = ["multiviewica", "shica_j", "shica_ml", "multi_group_direct_lingam", "lingam"]
 
@@ -35,6 +36,7 @@ dict_res = Parallel(n_jobs=N_JOBS)(
         nb_gaussian_sources=nb_gaussian_sources,
         random_state=random_state,
         ica_algo=ica_algo,
+        new_find_order_function=new_find_order_function,
     ) for nb_gaussian_sources, random_state, ica_algo
     in product(nb_gaussian_sources_list, random_state_list, algo_list)
 )
@@ -45,7 +47,7 @@ print(df)
 # save dataframe
 results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/"
 parent_dir = "gaussian_sources_in_xaxis/"
-save_name = f"DataFrame_with_{nb_seeds}_seeds_and_4_metrics"
+save_name = f"DataFrame_with_{nb_seeds}_seeds_and_7_metrics"
 save_path = results_dir + parent_dir + save_name
 df.to_csv(save_path, index=False)
 print("\n####################################### End #######################################")
