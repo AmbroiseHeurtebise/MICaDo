@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import pearsonr
 from picard import amari_distance
 import lingam
 from mvica_lingam.mvica_lingam import mvica_lingam
@@ -50,7 +51,7 @@ def run_experiment(
     ica_algo,
     noise_level=1.,
     shared_permutation=True,
-    metric_permutation="exact",  # or "spearmanr"
+    new_find_order_function=True,
 ):
     rng = np.random.RandomState(random_state)
     # generate observations X, causal order(s) P, and causal effects B and T
@@ -69,7 +70,7 @@ def run_experiment(
         # apply our main function to retrieve B, T, P, and W;
         B_estimates, T_estimates, P_estimate, _, W_estimates = mvica_lingam(
             X, shared_permutation=shared_permutation, ica_algo=ica_algo,
-            random_state=random_state)
+            random_state=random_state, new_find_order_function=new_find_order_function)
         if not shared_permutation:
             P_estimates = P_estimate  # shape (m, p, p)
     elif ica_algo == "multi_group_direct_lingam":
@@ -90,7 +91,7 @@ def run_experiment(
         P_estimates = []
         model = lingam.ICALiNGAM()
         for i in range(m):
-            model.fit(np.swapaxes(X[i], 0, 1))    
+            model.fit(np.swapaxes(X[i], 0, 1))
             # causal order P
             P_estimate = np.eye(p)[model.causal_order_]
             P_estimates.append(P_estimate)
@@ -121,25 +122,34 @@ def run_experiment(
         if ica_algo == "lingam":
             # P_estimates has shape (m, p, p)
             # error_P = np.mean([1 - (Pe == P).all() for Pe in P_estimates])
-            error_P = np.mean(
-                [compute_error_P(Pe, P, method=metric_permutation) 
+            error_P_spearmanr = np.mean(
+                [compute_error_P(Pe, P, method="spearmanr") 
+                 for Pe in P_estimates])
+            error_P_exact = np.mean(
+                [compute_error_P(Pe, P, method="exact") 
                  for Pe in P_estimates])
         else:
             # P_estimate has shape (p, p)
             # error_P = 1 - (P_estimate == P).all()
-            error_P = compute_error_P(P_estimate, P, method=metric_permutation)
+            error_P_spearmanr = compute_error_P(P_estimate, P, method="spearmanr")
+            error_P_exact = compute_error_P(P_estimate, P, method="exact")
     else:
         # P has shape (m, p, p)
         if ica_algo == "multi_group_direct_lingam":
             # P_estimate has shape (p, p)
             # error_P = np.mean([1 - (P_estimate == Pi).all() for Pi in P])
-            error_P = np.mean(
-                [compute_error_P(P_estimate, Pi, method=metric_permutation) for Pi in P])
+            error_P_spearmanr = np.mean(
+                [compute_error_P(P_estimate, Pi, method="spearmanr") for Pi in P])
+            error_P_exact = np.mean(
+                [compute_error_P(P_estimate, Pi, method="exact") for Pi in P])
         else:
             # P_estimates has shape (m, p, p)
             # error_P = np.mean([1 - (Pe == Pi).all() for Pe, Pi in zip(P_estimates, P)])
-            error_P = np.mean(
-                [compute_error_P(Pe, Pi, method=metric_permutation) 
+            error_P_spearmanr = np.mean(
+                [compute_error_P(Pe, Pi, method="spearmanr") 
+                 for Pe, Pi in zip(P_estimates, P)])
+            error_P_exact = np.mean(
+                [compute_error_P(Pe, Pi, method="exact") 
                  for Pe, Pi in zip(P_estimates, P)])
     error_B = np.mean((B_estimates - B) ** 2)
     error_B_abs = np.mean(np.abs(B_estimates - B))
@@ -158,7 +168,8 @@ def run_experiment(
         "error_B_abs": error_B_abs,
         "error_T": error_T,
         "error_T_abs": error_T_abs,
-        "error_P": error_P,
+        "error_P_spearmanr": error_P_spearmanr,
+        "error_P_exact": error_P_exact,
         "amari_distance": amari,
     }
     return output
