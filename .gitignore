@@ -15,3 +15,6 @@ real_data_experiments/2_data_envelopes/
 
 # Temporary files
 *tmp.py
+
+# Results of our algorithm on Cam-CAN
+real_data_experiments/4_results/
