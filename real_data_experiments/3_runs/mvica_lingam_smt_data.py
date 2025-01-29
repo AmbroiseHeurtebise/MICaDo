@@ -7,7 +7,7 @@ from mvica_lingam.mvica_lingam import mvica_lingam
 
 
 # Limit the number of jobs
-N_JOBS = 8
+N_JOBS = 4
 os.environ["OMP_NUM_THREADS"] = str(N_JOBS)
 os.environ["MKL_NUM_THREADS"] = str(N_JOBS)
 os.environ["NUMEXPR_NUM_THREADS"] = str(N_JOBS)
@@ -17,6 +17,7 @@ n_subjects = 152
 parcellation = "aparc_sub"
 n_labels = 38
 subset = False
+group = 2
 
 # Load data
 expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
@@ -80,6 +81,13 @@ elif parcellation =="aparc_sub":
     X = np.array(X)  # shape (98, 10, 1760)
     labels = [label for label in labels if label.name in selected_label_names]
     n_subjects_full = len(X)
+    
+    if group == 1:
+        n_subjects_full = len(X) // 2
+        X = X[:n_subjects_full]
+    elif group == 2:
+        n_subjects_full = len(X) - len(X) // 2
+        X = X[n_subjects_full:]
 
 # Apply our method
 start = time()
@@ -88,7 +96,13 @@ execution_time = time() - start
 print(f"The method took {execution_time:.2f} s.")
 
 # Save data
-save_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects_full}_subjects")
+if group == 1:
+    group_suffix = "_group1"
+elif group == 2:
+    group_suffix = "_group2"
+else:
+    group_suffix = ""
+save_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects_full}_subjects{group_suffix}")
 save_dir.mkdir(parents=True, exist_ok=True)
 np.save(save_dir / "P.npy", P)
 np.save(save_dir / "T.npy", T)
