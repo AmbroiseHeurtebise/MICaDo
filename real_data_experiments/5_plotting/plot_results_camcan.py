@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm
 import pickle
 from pathlib import Path
+from scipy.stats import spearmanr
 
 
 # %%
@@ -13,6 +14,7 @@ parcellation = "aparc_sub"
 n_arrows = 10
 only_clean = False
 seed = 2
+groups = True
 
 # Load results
 expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
@@ -20,24 +22,55 @@ if only_clean:
     results_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects}_subjects_clean")
 else:
     results_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects}_subjects_seed{seed}")
-P = np.load(results_dir / "P.npy")
-T = np.load(results_dir / "T.npy")
-B = np.load(results_dir / "B.npy")
-with open(results_dir / f"labels.pkl", "rb") as f:
-    labels = pickle.load(f)
+
+if groups:
+    n_subjects //= 2
+    results_dir1 = Path(expes_dir / f"4_results/{parcellation}_{n_subjects}_subjects_group1")
+    results_dir2 = Path(expes_dir / f"4_results/{parcellation}_{n_subjects}_subjects_group2")
+    P1 = np.load(results_dir1 / "P.npy")
+    T1 = np.load(results_dir1 / "T.npy")
+    B1 = np.load(results_dir1 / "B.npy")
+    P2 = np.load(results_dir2 / "P.npy")
+    T2 = np.load(results_dir2 / "T.npy")
+    B2 = np.load(results_dir2 / "B.npy")
+    with open(results_dir1 / f"labels.pkl", "rb") as f:
+        labels = pickle.load(f)
+else:
+    P = np.load(results_dir / "P.npy")
+    T = np.load(results_dir / "T.npy")
+    B = np.load(results_dir / "B.npy")
+    with open(results_dir / f"labels.pkl", "rb") as f:
+        labels = pickle.load(f)
+
+# %%
+# Print Spearman rank correlation
+if groups:
+    B1_med = np.median(B1, axis=0)
+    B2_med = np.median(B2, axis=0)
+    rho, p_value = spearmanr(B1_med.flatten(), B2_med.flatten())
+    print(f"Spearman rank correlation between groups 1 and 2: {rho:.3f} ; p-value: {p_value:.3f}")
 
 # %%
 # Plot average matrix T (should be lower triangular)
+if groups:
+    T = T1
 plt.imshow(np.mean(np.abs(T), axis=0))
 plt.colorbar()
 plt.title("Average absolute value lower triangular matrix T")
 plt.show()
 
 # %%
-# Normalize matrices Bi: divide each Bi by its max in absolute value
-B_maxs = np.array([np.max(Bi_abs) for Bi_abs in np.abs(B)])[:, np.newaxis, np.newaxis]
-B_norm = B / B_maxs
-B_avg = np.mean(B_norm, axis=0)
+# Define matrix B_avg
+use_median = True
+if groups:
+    B = B1
+if use_median:
+    B_avg = np.median(B, axis=0)
+else:    
+    # Normalize matrices Bi: divide each Bi by its max in absolute value
+    B_maxs = np.array([np.max(Bi_abs) for Bi_abs in np.abs(B)])[:, np.newaxis, np.newaxis]
+    B_norm = B / B_maxs
+    B_avg = np.mean(B_norm, axis=0)
 
 # %%
 # Choose random subject
