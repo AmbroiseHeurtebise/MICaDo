@@ -19,9 +19,10 @@ plt.rcParams.update(rc)
 
 # parameters 
 nb_seeds = 2
+n_metrics = 7
 nb_gaussian_sources_list = [4, 0, 2]
 shared_permutation = False
-errors = ["error_B", "error_T", "error_P"]
+errors = ["error_B", "error_T", "error_P_spearmanr"]  # "error_P_exact"
 if shared_permutation:
     error_names = [r"Error on $B^i$", r"Error on $T^i$", r"Error rate on $P$"]
 else:
@@ -37,7 +38,7 @@ if shared_permutation:
     parent_dir = "shared_P"
 else:
     parent_dir = "multiple_Pi"
-save_name = f"/DataFrame_with_{nb_seeds}_seeds_and_4_metrics"
+save_name = f"/DataFrame_with_{nb_seeds}_seeds_and_{n_metrics}_metrics"
 save_path = results_dir + parent_dir + save_name
 df = pd.read_csv(save_path)
 
