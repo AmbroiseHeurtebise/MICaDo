@@ -17,7 +17,8 @@ n_subjects = 152
 parcellation = "aparc_sub"
 n_labels = 38
 subset = False
-group = 2
+group = False
+ica_algo = "multiviewica"
 
 # Load data
 expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
@@ -91,18 +92,18 @@ elif parcellation =="aparc_sub":
 
 # Apply our method
 start = time()
-B, T, P, _, _ = mvica_lingam(X)
+B, T, P, _, _ = mvica_lingam(X, ica_algo=ica_algo, new_find_order_function=False)
 execution_time = time() - start
 print(f"The method took {execution_time:.2f} s.")
 
 # Save data
 if group == 1:
-    group_suffix = "_group1"
+    group_suffix = "_group1_"
 elif group == 2:
-    group_suffix = "_group2"
+    group_suffix = "_group2_"
 else:
     group_suffix = ""
-save_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects_full}_subjects{group_suffix}")
+save_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects_full}_subjects{group_suffix}{ica_algo}")
 save_dir.mkdir(parents=True, exist_ok=True)
 np.save(save_dir / "P.npy", P)
 np.save(save_dir / "T.npy", T)
