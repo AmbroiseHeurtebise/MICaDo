@@ -50,6 +50,7 @@ def run_experiment(
     ica_algo,
     noise_level=1.,
     shared_permutation=True,
+    metric_permutation="exact",  # or "spearmanr"
 ):
     rng = np.random.RandomState(random_state)
     # generate observations X, causal order(s) P, and causal effects B and T
@@ -107,22 +108,39 @@ def run_experiment(
         raise ValueError("Wrong ica_algo.")
     
     # errors
+    def compute_error_P(P1, P2, method="exact"):
+        if method == "exact":
+            error_P = 1 - (P1 == P2).all()
+            return error_P
+        else:
+            corr = pearsonr(np.argmax(P1, axis=1), np.argmax(P2, axis=1))[0]
+            return corr
+
     if shared_permutation:
         # P has shape (p, p)
         if ica_algo == "lingam":
             # P_estimates has shape (m, p, p)
-            error_P = np.mean([1 - (Pe == P).all() for Pe in P_estimates])
+            # error_P = np.mean([1 - (Pe == P).all() for Pe in P_estimates])
+            error_P = np.mean(
+                [compute_error_P(Pe, P, method=metric_permutation) 
+                 for Pe in P_estimates])
         else:
             # P_estimate has shape (p, p)
-            error_P = 1 - (P_estimate == P).all()
+            # error_P = 1 - (P_estimate == P).all()
+            error_P = compute_error_P(P_estimate, P, method=metric_permutation)
     else:
         # P has shape (m, p, p)
         if ica_algo == "multi_group_direct_lingam":
             # P_estimate has shape (p, p)
-            error_P = np.mean([1 - (P_estimate == Pi).all() for Pi in P])
+            # error_P = np.mean([1 - (P_estimate == Pi).all() for Pi in P])
+            error_P = np.mean(
+                [compute_error_P(P_estimate, Pi, method=metric_permutation) for Pi in P])
         else:
             # P_estimates has shape (m, p, p)
-            error_P = np.mean([1 - (Pe == Pi).all() for Pe, Pi in zip(P_estimates, P)])
+            # error_P = np.mean([1 - (Pe == Pi).all() for Pe, Pi in zip(P_estimates, P)])
+            error_P = np.mean(
+                [compute_error_P(Pe, Pi, method=metric_permutation) 
+                 for Pe, Pi in zip(P_estimates, P)])
     error_B = np.mean((B_estimates - B) ** 2)
     error_B_abs = np.mean(np.abs(B_estimates - B))
     error_T = np.mean((T_estimates - T) ** 2)
