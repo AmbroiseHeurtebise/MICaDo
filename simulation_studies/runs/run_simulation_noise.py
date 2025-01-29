@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os
 from itertools import product
 from joblib import Parallel, delayed
 from utils import run_experiment
@@ -15,6 +16,7 @@ os.environ["NUMEXPR_NUM_THREADS"] = str(N_JOBS)
 m = 5
 p = 4
 n = 1000
+new_find_order_function = False
 
 # varying parameters
 nb_gaussian_sources_list = [0, 2, 4]
@@ -37,6 +39,7 @@ dict_res = Parallel(n_jobs=N_JOBS)(
         nb_gaussian_sources=nb_gaussian_sources,
         random_state=random_state,
         ica_algo=ica_algo,
+        new_find_order_function=new_find_order_function,
     ) for noise_level, nb_gaussian_sources, random_state, ica_algo
     in product(noise_level_list, nb_gaussian_sources_list, random_state_list, algo_list)
 )
@@ -46,7 +49,7 @@ print(df)
 
 # save dataframe
 results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/noise_in_xaxis/"
-save_name = f"DataFrame_with_{nb_seeds}_seeds_and_4_metrics"
+save_name = f"DataFrame_with_{nb_seeds}_seeds_and_7_metrics"
 save_path = results_dir + save_name
 df.to_csv(save_path, index=False)
 print("\n####################################### End #######################################")
