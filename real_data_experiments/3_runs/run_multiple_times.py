@@ -1,6 +1,5 @@
 import numpy as np
 import pickle
-from time import time
 from pathlib import Path
 import os
 from mvica_lingam.mvica_lingam import mvica_lingam
@@ -13,11 +12,9 @@ os.environ["MKL_NUM_THREADS"] = str(N_JOBS)
 os.environ["NUMEXPR_NUM_THREADS"] = str(N_JOBS)
 
 # Parameters
-n_runs = 2
-keep_subjects_rate = 1 / 3  # only keep 67% of the subjects
-random_state = 42
-rng = np.random.RandomState(random_state)
-ica_algo = "multiviewica"
+n_runs = 50
+keep_subjects_rate = 1 / 2  # only keep 50% of the subjects
+ica_algo = "shica_ml"
 
 # Load data
 expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
@@ -69,19 +66,21 @@ B_total = np.zeros((n_runs, n_subjects_batch, n_labels, n_labels))
 T_total = np.zeros((n_runs, n_subjects_batch, n_labels, n_labels))
 P_total = np.zeros((n_runs, n_labels, n_labels))
 for i in range(n_runs):
+    print(f"Run number {i} / {n_runs}")
+    rng = np.random.RandomState(i)
     # Select of subset of subjects
     subjects_idx = rng.choice(n_subjects_full, size=n_subjects_batch, replace=False)
     X_subset = X[subjects_idx]
     # Apply our method
     B, T, P, _, _ = mvica_lingam(
-        X_subset, ica_algo=ica_algo, random_state=random_state,
+        X_subset, ica_algo=ica_algo, random_state=i,
         new_find_order_function=False)
     B_total[i] = B
     T_total[i] = T
     P_total[i] = P
 
 # Save data
-save_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects_full}_subjects_{n_runs}_runs_{ica_algo}")
+save_dir = Path(expes_dir / f"4_results/aparc_sub_{n_subjects_full}_subjects_{n_runs}_runs_{ica_algo}")
 save_dir.mkdir(parents=True, exist_ok=True)
 np.save(save_dir / "B_total.npy", B_total)
 np.save(save_dir / "T_total.npy", T_total)

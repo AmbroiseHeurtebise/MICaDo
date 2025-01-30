@@ -18,11 +18,11 @@ rc = {
 plt.rcParams.update(rc)
 
 # parameters 
-nb_seeds = 2
+nb_seeds = 50
 n_metrics = 7
 nb_gaussian_sources_list = [4, 0, 2]
-shared_permutation = False
-errors = ["error_B", "error_T", "error_P_spearmanr"]  # "error_P_exact"
+shared_permutation = True
+errors = ["error_B", "error_T", "error_P_exact"]  # "error_P_exact"
 if shared_permutation:
     error_names = [r"Error on $B^i$", r"Error on $T^i$", r"Error rate on $P$"]
 else:
@@ -30,7 +30,7 @@ else:
 titles = ["Gaussian", "Non-Gaussian", "Half-G / Half-NG"]
 estimator = "mean"
 labels = [
-    'ShICA-ML-LiNGAM', 'ShICA-J-LiNGAM', 'LiNGAM', 'MultiGroupDirectLiNGAM']
+    'MICaDo-ML', 'MICaDo-J', 'ICA-LiNGAM', 'MultiGroupDirectLiNGAM', 'MICaDo-MVICA']
 
 # read dataframe
 results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/"
@@ -46,10 +46,7 @@ df = pd.read_csv(save_path)
 filtered_df = df[df["ica_algo"] != "multiviewica"]
 
 # change the curves order
-hue_order = ["shica_ml", "shica_j", "lingam", "multi_group_direct_lingam"]
-
-# specify line styles
-style_order = ["shica_ml", "shica_j", "lingam", "multi_group_direct_lingam"]
+hue_order = ["shica_ml", "shica_j", "lingam", "multi_group_direct_lingam", "multiviewica"]
 
 # subplots
 fig, axes = plt.subplots(3, 3, figsize=(12, 6), sharex="col", sharey="row")
@@ -64,13 +61,13 @@ for i, ax in enumerate(axes.flat):
         sns.lineplot(
             data=data, x="n", y=y, linewidth=2.5, hue="ica_algo", estimator=np.mean,
             ax=ax, errorbar=lambda x: (np.quantile(x, 0.025), np.quantile(x, 0.975)),
-            hue_order=hue_order, style_order=style_order, style="ica_algo",
-            dashes=['', '', (2, 2), (2, 2)])
+            hue_order=hue_order, style_order=hue_order, style="ica_algo",
+            dashes=['', '', (2, 2), (2, 2), ''])
     else:
         sns.lineplot(
             data=data, x="n", y=y, linewidth=2.5, hue="ica_algo", ax=ax, errorbar=('ci', 95),
-            hue_order=hue_order, style_order=style_order, style="ica_algo",
-            dashes=['', '', (2, 2), (2, 2)])
+            hue_order=hue_order, style_order=hue_order, style="ica_algo",
+            dashes=['', '', (2, 2), (2, 2), ''])
     # set axis in logscale, except for the yaxis of the middle row
     ax.set_xscale("log")
     if i // 3 != 2:
@@ -95,12 +92,13 @@ plt.gcf().align_labels()
 plt.tight_layout()
 plt.subplots_adjust(hspace=0.15)
 # legend
-palette = sns.color_palette()[:4]
+palette = sns.color_palette()[:5]
 legend_styles = [
     Line2D([0], [0], color=palette[0], linewidth=2.5, linestyle='-'),
     Line2D([0], [0], color=palette[1], linewidth=2.5, linestyle='-'),
     Line2D([0], [0], color=palette[2], linewidth=2.5, linestyle='--'),
     Line2D([0], [0], color=palette[3], linewidth=2.5, linestyle='--'),
+    Line2D([0], [0], color=palette[4], linewidth=2.5, linestyle='-'),
 ]
 fig.legend(
     legend_styles, labels, bbox_to_anchor=(0.5, 1.03), loc="center",
