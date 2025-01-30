@@ -15,7 +15,7 @@ def mvica_lingam(
     max_iter=3000,
     tol=1e-8,
     random_state=None,
-    new_find_order_function=True,
+    new_find_order_function=False,
 ):
     """Implementation of ICA-based multiview LiNGAM model.
 
