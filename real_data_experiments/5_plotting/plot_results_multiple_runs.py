@@ -4,13 +4,13 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm
 import pickle
 from pathlib import Path
-from scipy.stats import spearmanr
+from scipy.stats import spearmanr, pearsonr
 
 # %%
 # Parameters
 n_subjects = 98
 n_runs = 50
-ica_algo = "shica_ml"
+ica_algo = "multiviewica"
 n_arrows = 10
 random_state = 42
 rng = np.random.RandomState(random_state)
@@ -37,21 +37,22 @@ rc = {
 plt.rcParams.update(rc)
 
 # %%
-# Compute Spearman rank coefficients
+# Compute Pearson coefficients for the Bi matrices
 spearmanr_matrix = np.zeros((n_runs, n_runs))
 for i in range(n_runs):
     for j in range(n_runs):
         B1_median = np.median(B_total[i], axis=0)
         B2_median = np.median(B_total[j], axis=0)
-        rho, p_value = spearmanr(B1_median.flatten(), B2_median.flatten())
+        # rho, p_value = spearmanr(B1_median.flatten(), B2_median.flatten())
+        rho, p_value = pearsonr(B1_median.flatten(), B2_median.flatten())
         spearmanr_matrix[i, j] = rho
 np.fill_diagonal(spearmanr_matrix, 0)
 
-# Compute the average Spearman rank correlation
+# Compute the average Pearson coefficient
 upper_triangular_values = spearmanr_matrix[np.triu_indices(n_runs, k=1)]
 avg_corr = np.mean(upper_triangular_values)
 
-# Plot obtained Spearman rank correlations
+# Plot obtained coefficients
 fig, ax = plt.subplots()
 norm = TwoSlopeNorm(vmin=-1, vmax=1, vcenter=0)
 plt.imshow(spearmanr_matrix, norm=norm, cmap="coolwarm")
@@ -65,7 +66,7 @@ ax.set_ylabel("Runs")
 save = True
 if save:
     figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments/6_figures//"
-    plt.savefig(figures_dir + f"spearmanr_coefs.pdf", bbox_inches="tight")
+    plt.savefig(figures_dir + f"pearson_coefs_B.pdf", bbox_inches="tight")
 plt.show()
 
 # %%
@@ -121,7 +122,7 @@ B_median_2 = np.median(B_total, axis=(0))  # shape (49, 10, 10)
 B_subset = B_median_2[idx]
 
 # %%
-# Plot median adjacency matrix
+# Plot function
 def plot_B(B_median, n_arrows=10):
     # Only keep the most important effects
     M = np.abs(B_median)
@@ -146,16 +147,47 @@ def plot_B(B_median, n_arrows=10):
     ax.set_yticks(np.arange(len(label_names)))
     ax.set_xticklabels(label_names, rotation=45, ha="right")
     ax.set_yticklabels(label_names)
+    plt.grid()
     plt.show()
 
 # %%
 # plot 6 causal effect matrices
-for i in range(6):
-    plot_B(B_subset[i])
+go = False
+if go:
+    for i in range(6):
+        print(i)
+        plot_B(B_subset[i])
 
 # %%
-# for i in range(n_subjects // 2):
-#     print(i)
-#     plot_B(B_median_2[i])
+# Compute Spearman's rank correlation between the P's
+spearmanr_matrix = np.zeros((n_runs, n_runs))
+for i in range(n_runs):
+    for j in range(n_runs):
+        sigma1 = np.argmax(P_total[i], axis=1)
+        sigma2 = np.argmax(P_total[j], axis=1)
+        rho, p_value = pearsonr(sigma1, sigma2)
+        spearmanr_matrix[i, j] = rho
+np.fill_diagonal(spearmanr_matrix, 0)
+
+# Compute the average Pearson coefficient
+upper_triangular_values = spearmanr_matrix[np.triu_indices(n_runs, k=1)]
+avg_corr = np.mean(upper_triangular_values)
+
+# Plot obtained coefficients
+fig, ax = plt.subplots()
+norm = TwoSlopeNorm(vmin=-1, vmax=1, vcenter=0)
+plt.imshow(spearmanr_matrix, norm=norm, cmap="coolwarm")
+plt.colorbar()
+plt.title(f"Average = {avg_corr:.2f}")
+# ax.set_xticks(np.arange(n_runs))
+# ax.set_yticks(np.arange(n_runs))
+ax.set_xlabel("Runs")
+ax.set_ylabel("Runs")
+
+save = False
+if save:
+    figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments/6_figures//"
+    plt.savefig(figures_dir + f"spearmanr_coefs_P.pdf", bbox_inches="tight")
+plt.show()
 
 # %%
