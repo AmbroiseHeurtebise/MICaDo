@@ -20,17 +20,17 @@ plt.rcParams.update(rc)
 # parameters 
 nb_seeds = 50
 nb_gaussian_sources_list = [4, 0, 2]
-errors = ["error_B", "error_T", "error_P"]
-error_names = [r"Error on $B^i$", r"Error on $T^i$", r"Error rate on $P$"]
+# errors = ["error_B", "error_T", "error_P_exact"]
+errors = ["error_B", "error_T", "error_P_spearmanr"]
+# error_names = [r"Error on $B^i$", r"Error on $T^i$", r"Error rate on $P$"]
+error_names = [r"Error on $B^i$", r"Error on $T^i$", "Spearman's rank\ncorrelation on" + r" $P$"]
 titles = ["Gaussian", "Non-Gaussian", "Half-G / Half-NG"]
 estimator = "mean"
-labels = [
-    'ShICA-ML-LiNGAM', 'ShICA-J-LiNGAM', 'LiNGAM', 'MultiGroupDirectLiNGAM',
-    'MVICA-LiNGAM']
+labels = ['MICaDo-ML', 'MICaDo-J', 'ICA-LiNGAM', 'MultiGroupDirectLiNGAM', 'MICaDo-MVICA']
 
 # read dataframe
 results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/noise_in_xaxis/"
-save_name = f"DataFrame_with_{nb_seeds}_seeds_and_4_metrics"
+save_name = f"DataFrame_with_{nb_seeds}_seeds_and_7_metrics"
 save_path = results_dir + save_name
 df = pd.read_csv(save_path)
 
@@ -39,9 +39,6 @@ filtered_df = df  # df[df["ica_algo"] != "multiviewica"]
 
 # change the curves order
 hue_order = ["shica_ml", "shica_j", "lingam", "multi_group_direct_lingam", "multiviewica"]
-
-# specify line styles
-style_order = ["shica_ml", "shica_j", "lingam", "multi_group_direct_lingam", "multiviewica"]
 
 # subplots
 fig, axes = plt.subplots(3, 3, figsize=(12, 6), sharex="col", sharey="row")
@@ -56,12 +53,12 @@ for i, ax in enumerate(axes.flat):
         sns.lineplot(
             data=data, x="noise_level", y=y, linewidth=2.5, hue="ica_algo", estimator=np.mean,
             ax=ax, errorbar=lambda x: (np.quantile(x, 0.025), np.quantile(x, 0.975)),
-            hue_order=hue_order, style_order=style_order, style="ica_algo",
+            hue_order=hue_order, style_order=hue_order, style="ica_algo",
             dashes=['', '', (2, 2), (2, 2), ''])
     else:
         sns.lineplot(
             data=data, x="noise_level", y=y, linewidth=2.5, hue="ica_algo", ax=ax,
-            errorbar=('ci', 95), hue_order=hue_order, style_order=style_order,
+            errorbar=('ci', 95), hue_order=hue_order, style_order=hue_order,
             style="ica_algo", dashes=['', '', (2, 2), (2, 2), ''])
     # set axis in logscale, except for the yaxis of the middle row
     ax.set_xscale("log")
