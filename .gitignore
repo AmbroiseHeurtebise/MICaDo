@@ -1,8 +1,9 @@
 # Ignore Mac system files
 .DS_store
 
-# Ignore all .pdf files
+# Ignore all .pdf and .png files
 *.pdf
+*.png
 
 # Ignore __pycache__ file
 __pycache__
