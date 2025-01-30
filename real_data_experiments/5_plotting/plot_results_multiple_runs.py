@@ -2,6 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm
+import matplotlib.colors as mcolors
 import pickle
 from pathlib import Path
 from scipy.stats import spearmanr, pearsonr
@@ -184,10 +185,40 @@ plt.title(f"Average = {avg_corr:.2f}")
 ax.set_xlabel("Runs")
 ax.set_ylabel("Runs")
 
-save = False
+save = True
 if save:
     figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments/6_figures//"
     plt.savefig(figures_dir + f"spearmanr_coefs_P.pdf", bbox_inches="tight")
+plt.show()
+
+# %%
+# Histogram of the correlations
+fig, ax = plt.subplots(figsize=(8, 6))
+nbins = 50
+bins = np.linspace(-1, 1, nbins + 1)
+n, bins, patches = ax.hist(upper_triangular_values, bins=bins, edgecolor='black')
+# colors
+bin_centers = 0.5 * (bins[:-1] + bins[1:])
+norm = mcolors.Normalize(vmin=-1, vmax=1)
+cmap = plt.cm.coolwarm
+for center, patch in zip(bin_centers, patches):
+    color = cmap(norm(center))
+    patch.set_facecolor(color)
+# vline and labels
+ax.vlines(x=0, ymin=0, ymax=n.max(), ls="--", colors="grey")
+ax.grid()
+ax.set_xlabel("Spearman's rank correlation")
+ax.set_ylabel("Number of pairs of permutations")
+# Add a text box for the mean
+textstr = f"Average = {avg_corr:.2f}"
+props = dict(boxstyle="round", facecolor="white", alpha=0.8)
+ax.text(0.38, 0.95, textstr, transform=ax.transAxes,
+        verticalalignment='top', horizontalalignment='right', bbox=props)
+
+save = True
+if save:
+    figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments/6_figures//"
+    plt.savefig(figures_dir + f"histogram_spearmanr_coefs_P.pdf", bbox_inches="tight")
 plt.show()
 
 # %%
