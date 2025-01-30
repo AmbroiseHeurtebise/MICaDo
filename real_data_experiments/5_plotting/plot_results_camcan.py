@@ -14,14 +14,15 @@ parcellation = "aparc_sub"
 n_arrows = 10
 only_clean = False
 seed = 2
-groups = True
+groups = False
+ica_algo = "multiviewica"
 
 # Load results
 expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
 if only_clean:
     results_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects}_subjects_clean")
 else:
-    results_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects}_subjects_seed{seed}")
+    results_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects}_subjects_seed{seed}_{ica_algo}")
 
 if groups:
     n_subjects //= 2
@@ -78,21 +79,6 @@ go = False
 if go:
     idx = np.random.randint(0, n_subjects)
     B_avg = B[idx]
-
-# %%
-# # tmp cell
-# label_names = [
-#     'pericalcarine_1-lh',
-#     'pericalcarine_4-rh',
-#     'postcentral_6-lh',
-#     'postcentral_7-rh',
-#     'postcentral_8-lh',
-#     'postcentral_8-rh',
-#     'precentral_11-lh',
-#     'precentral_7-rh',
-#     'superiortemporal_3-lh',
-#     'superiortemporal_5-rh',
-# ]
 
 # %%
 # Plot average normalized adjacency matrix
