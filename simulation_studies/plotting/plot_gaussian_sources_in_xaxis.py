@@ -73,5 +73,6 @@ fig.legend(
 
 # save figure
 figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/figures/"
+figures_dir.mkdir(parents=True, exist_ok=True)
 plt.savefig(figures_dir + f"simulation_gaussian_sources.pdf", bbox_inches="tight")
 plt.show()
