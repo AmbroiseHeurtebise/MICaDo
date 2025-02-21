@@ -1,4 +1,4 @@
-# Multiview ICA LiNGAM
+# Multiview ICA-based Causal Discovery
 
 This repository contains code to estimate a causal order from multiple datasets at once.
 
