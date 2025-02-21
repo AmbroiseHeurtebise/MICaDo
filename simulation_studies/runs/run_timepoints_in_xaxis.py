@@ -49,9 +49,9 @@ print(df)
 # save dataframe
 results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/"
 if shared_permutation:
-    parent_dir = "shared_P/"
+    parent_dir = "results_timepoints_in_xaxis/shared_P/"
 else:
-    parent_dir = "multiple_Pi/"
+    parent_dir = "results_timepoints_in_xaxis/multiple_Pi/"
 save_name = f"DataFrame_with_{nb_seeds}_seeds_and_7_metrics"
 save_path = results_dir + parent_dir + save_name
 df.to_csv(save_path, index=False)
