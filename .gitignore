@@ -14,6 +14,9 @@ __pycache__
 # Temporary files
 *tmp.py
 
+# Trash directories
+*trash/
+
 # Data envelopes directory (which contains .npz files)
 real_data_experiments/2_data_envelopes/
 
