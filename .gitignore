@@ -1,21 +1,21 @@
 # Ignore Mac system files
 .DS_store
 
-# Ignore all .pdf and .png files
-*.pdf
-*.png
-
 # Ignore __pycache__ file
 __pycache__
 
 # Ignore .egg-info
 *.egg-info
 
-# Data envelopes directory (which contains .npz files)
-real_data_experiments/2_data_envelopes/
+# Ignore all .pdf and .png files
+*.pdf
+*.png
 
 # Temporary files
 *tmp.py
+
+# Data envelopes directory (which contains .npz files)
+real_data_experiments/2_data_envelopes/
 
 # Results of our algorithm on Cam-CAN
 real_data_experiments/4_results/
