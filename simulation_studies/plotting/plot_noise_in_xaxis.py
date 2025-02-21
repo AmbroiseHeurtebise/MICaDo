@@ -29,9 +29,10 @@ estimator = "mean"
 labels = ['MICaDo-ML', 'MICaDo-J', 'ICA-LiNGAM', 'MultiGroupDirectLiNGAM', 'MICaDo-MVICA']
 
 # read dataframe
-results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/noise_in_xaxis/"
+results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/"
+parent_dir = "results_noise_in_xaxis/"
 save_name = f"DataFrame_with_{nb_seeds}_seeds_and_7_metrics"
-save_path = results_dir + save_name
+save_path = results_dir + parent_dir + save_name
 df = pd.read_csv(save_path)
 
 # remove MVICA LiNGAM curve

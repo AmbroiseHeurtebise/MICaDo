@@ -35,7 +35,7 @@ estimator = "mean"
 labels = ['MICaDo-ML', 'MICaDo-J', 'ICA-LiNGAM', 'MultiGroupDirectLiNGAM']
 
 # read dataframe
-results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/"
+results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/results_timepoints_in_xaxis/"
 if shared_permutation:
     parent_dir = "shared_P"
 else:

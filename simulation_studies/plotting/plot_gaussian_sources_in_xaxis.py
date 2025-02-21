@@ -27,7 +27,7 @@ hue_order = ["shica_ml", "shica_j", "lingam", "multi_group_direct_lingam", "mult
 
 # read dataframe
 results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/"
-parent_dir = "gaussian_sources_in_xaxis/"
+parent_dir = "results_gaussian_sources_in_xaxis/"
 save_name = f"DataFrame_with_{nb_seeds}_seeds_and_7_metrics"
 save_path = results_dir + parent_dir + save_name
 df = pd.read_csv(save_path)
