@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="mvica_lingam",
-    description="Multiview ICA-based LiNGAM",
+    name="micado",
+    description="Multi-view ICA-based Causal Discovery",
     version="0.0.1",
     keywords="",
     packages=find_packages(),

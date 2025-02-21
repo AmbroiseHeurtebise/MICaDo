@@ -2,7 +2,7 @@ import numpy as np
 from scipy.stats import pearsonr
 from picard import amari_distance
 import lingam
-from mvica_lingam.mvica_lingam import mvica_lingam
+from micado.micado import micado
 
 
 # function that samples data according to our model
@@ -68,7 +68,7 @@ def run_experiment(
     # apply either our method, Multi Group DirectLiNGAM, or LiNGAM
     if ica_algo in ["multiviewica", "shica_j", "shica_ml"]:
         # apply our main function to retrieve B, T, P, and W;
-        B_estimates, T_estimates, P_estimate, _, W_estimates = mvica_lingam(
+        B_estimates, T_estimates, P_estimate, _, W_estimates = micado(
             X, shared_permutation=shared_permutation, ica_algo=ica_algo,
             random_state=random_state, new_find_order_function=new_find_order_function)
         if not shared_permutation:

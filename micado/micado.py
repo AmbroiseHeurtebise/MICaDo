@@ -1,5 +1,5 @@
 """
-Python implementation of the Multiview ICA-based LiNGAM algorithm.
+Python implementation of the Multi-view ICA-based Causal Discovery algorithm.
 """
 
 import numpy as np
@@ -8,7 +8,7 @@ from multiviewica import multiviewica
 from shica import shica_j, shica_ml
 
 
-def mvica_lingam(
+def micado(
     X,
     shared_permutation=True,
     ica_algo="shica_ml",
@@ -17,7 +17,7 @@ def mvica_lingam(
     random_state=None,
     new_find_order_function=False,
 ):
-    """Implementation of ICA-based multiview LiNGAM model.
+    """Implementation of the Multi-view ICA-based Causal Discovery algorithm.
 
     Parameters
     ----------
