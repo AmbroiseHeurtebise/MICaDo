@@ -3,7 +3,7 @@ import pickle
 from time import time
 from pathlib import Path
 import os
-from mvica_lingam.mvica_lingam import mvica_lingam
+from micado.micado import micado
 
 
 # Limit the number of jobs
@@ -93,7 +93,7 @@ elif parcellation =="aparc_sub":
 
 # Apply our method
 start = time()
-B, T, P, _, _ = mvica_lingam(
+B, T, P, _, _ = micado(
     X, ica_algo=ica_algo, new_find_order_function=False, random_state=random_state)
 execution_time = time() - start
 print(f"The method took {execution_time:.2f} s.")

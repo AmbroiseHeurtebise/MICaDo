@@ -2,7 +2,7 @@ import numpy as np
 import pickle
 from pathlib import Path
 import os
-from mvica_lingam.mvica_lingam import mvica_lingam
+from micado.micado import micado
 
 
 # Limit the number of jobs
@@ -72,7 +72,7 @@ for i in range(n_runs):
     subjects_idx = rng.choice(n_subjects_full, size=n_subjects_batch, replace=False)
     X_subset = X[subjects_idx]
     # Apply our method
-    B, T, P, _, _ = mvica_lingam(
+    B, T, P, _, _ = micado(
         X_subset, ica_algo=ica_algo, random_state=i,
         new_find_order_function=False)
     B_total[i] = B
