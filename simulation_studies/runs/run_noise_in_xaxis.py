@@ -19,14 +19,14 @@ n = 1000
 new_find_order_function = False
 
 # varying parameters
-nb_gaussian_sources_list = [0, 2, 4]
+nb_gaussian_disturbances_list = [0, 2, 4]
 nb_seeds = 50
 random_state_list = np.arange(nb_seeds)
 noise_level_list = np.logspace(-2, 2, 21)
 algo_list = ["multiviewica", "shica_j", "shica_ml", "multi_group_direct_lingam", "lingam"]
 
 # run experiment
-nb_expes = len(nb_gaussian_sources_list) * len(random_state_list) * len(noise_level_list) \
+nb_expes = len(nb_gaussian_disturbances_list) * len(random_state_list) * len(noise_level_list) \
     * len(algo_list)
 print(f"\nTotal number of experiments : {nb_expes}")
 print("\n###################################### Start ######################################")
@@ -36,12 +36,12 @@ dict_res = Parallel(n_jobs=N_JOBS)(
         p=p,
         n=n,
         noise_level=noise_level,
-        nb_gaussian_sources=nb_gaussian_sources,
+        nb_gaussian_disturbances=nb_gaussian_disturbances,
         random_state=random_state,
         ica_algo=ica_algo,
         new_find_order_function=new_find_order_function,
-    ) for noise_level, nb_gaussian_sources, random_state, ica_algo
-    in product(noise_level_list, nb_gaussian_sources_list, random_state_list, algo_list)
+    ) for noise_level, nb_gaussian_disturbances, random_state, ica_algo
+    in product(noise_level_list, nb_gaussian_disturbances_list, random_state_list, algo_list)
 )
 print("\n################################ Obtained DataFrame ################################")
 df = pd.DataFrame(dict_res)

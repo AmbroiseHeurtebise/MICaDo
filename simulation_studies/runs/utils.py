@@ -8,30 +8,28 @@ from micado.micado import micado
 # function that samples data according to our model
 # we use similar parameters as in Fig. 2 of the ShICA paper
 def sample_data(
-    m, p, n, noise_level=1., nb_gaussian_sources=0, rng=None, shared_permutation=True,
+    m, p, n, noise_level=1., nb_gaussian_disturbances=0, rng=None, shared_causal_ordering=True,
 ):
     # sources
-    S_ng = rng.laplace(size=(p-nb_gaussian_sources, n))
-    S_g = rng.normal(size=(nb_gaussian_sources, n))
+    S_ng = rng.laplace(size=(p-nb_gaussian_disturbances, n))
+    S_g = rng.normal(size=(nb_gaussian_disturbances, n))
     S = np.vstack((S_ng, S_g))
     # noise
     sigmas = np.ones((m, p)) * 1 / 2
-    if nb_gaussian_sources != 0:
-        sigmas[:, -nb_gaussian_sources:] = rng.uniform(size=(m, nb_gaussian_sources))
+    if nb_gaussian_disturbances != 0:
+        sigmas[:, -nb_gaussian_disturbances:] = rng.uniform(size=(m, nb_gaussian_disturbances))
     N = noise_level * rng.normal(scale=sigmas[:, :, np.newaxis], size=(m, p, n))
     # causal effect matrices T
     T = rng.normal(size=(m, p, p))
     for i in range(m):
         T[i][np.triu_indices(p, k=0)] = 0  # set the strictly upper triangular part to 0
     # causal order
-    if shared_permutation:
-        # P = np.eye(p)
-        # rng.shuffle(P)
+    if shared_causal_ordering:
         P = np.eye(p)[rng.permutation(p)]
     else:
         P = np.array([np.eye(p)[rng.permutation(p)] for _ in range(m)])
     # causal effect matrices B
-    if shared_permutation:
+    if shared_causal_ordering:
         B = P.T @ T @ P
     else:
         B = np.array([Pi.T @ Ti @ Pi for Pi, Ti in zip(P, T)])
@@ -46,11 +44,11 @@ def run_experiment(
     m,
     p,
     n,
-    nb_gaussian_sources,
+    nb_gaussian_disturbances,
     random_state,
     ica_algo,
     noise_level=1.,
-    shared_permutation=True,
+    shared_causal_ordering=True,
     new_find_order_function=True,
 ):
     rng = np.random.RandomState(random_state)
@@ -60,18 +58,19 @@ def run_experiment(
         p=p,
         n=n,
         noise_level=noise_level,
-        nb_gaussian_sources=nb_gaussian_sources,
+        nb_gaussian_disturbances=nb_gaussian_disturbances,
         rng=rng,
-        shared_permutation=shared_permutation,
+        shared_causal_ordering=shared_causal_ordering,
     )
 
     # apply either our method, Multi Group DirectLiNGAM, or LiNGAM
     if ica_algo in ["multiviewica", "shica_j", "shica_ml"]:
         # apply our main function to retrieve B, T, P, and W;
         B_estimates, T_estimates, P_estimate, _, W_estimates = micado(
-            X, shared_permutation=shared_permutation, ica_algo=ica_algo,
-            random_state=random_state, new_find_order_function=new_find_order_function)
-        if not shared_permutation:
+            X, shared_causal_ordering=shared_causal_ordering, ica_algo=ica_algo,
+            random_state=random_state, new_find_order_function=new_find_order_function,
+            return_full=True)
+        if not shared_causal_ordering:
             P_estimates = P_estimate  # shape (m, p, p)
     elif ica_algo == "multi_group_direct_lingam":
         # apply Multi Group DirectLiNGAM to retrieve B, T, P, and W
@@ -117,7 +116,7 @@ def run_experiment(
             corr = pearsonr(np.argmax(P1, axis=1), np.argmax(P2, axis=1))[0]
             return corr
 
-    if shared_permutation:
+    if shared_causal_ordering:
         # P has shape (p, p)
         if ica_algo == "lingam":
             # P_estimates has shape (m, p, p)
@@ -146,10 +145,10 @@ def run_experiment(
             # P_estimates has shape (m, p, p)
             # error_P = np.mean([1 - (Pe == Pi).all() for Pe, Pi in zip(P_estimates, P)])
             error_P_spearmanr = np.mean(
-                [compute_error_P(Pe, Pi, method="spearmanr") 
+                [compute_error_P(Pe, Pi, method="spearmanr")
                  for Pe, Pi in zip(P_estimates, P)])
             error_P_exact = np.mean(
-                [compute_error_P(Pe, Pi, method="exact") 
+                [compute_error_P(Pe, Pi, method="exact")
                  for Pe, Pi in zip(P_estimates, P)])
     error_B = np.mean((B_estimates - B) ** 2)
     error_B_abs = np.mean(np.abs(B_estimates - B))
@@ -160,7 +159,7 @@ def run_experiment(
     # output
     output = {
         "ica_algo": ica_algo,
-        "nb_gaussian_sources": nb_gaussian_sources,
+        "nb_gaussian_disturbances": nb_gaussian_disturbances,
         "n": n,
         "noise_level": noise_level,
         "random_state": random_state,
