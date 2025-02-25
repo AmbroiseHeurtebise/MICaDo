@@ -11,7 +11,7 @@ from scipy.stats import spearmanr, pearsonr
 # Parameters
 n_subjects = 98
 n_runs = 50
-ica_algo = "multiviewica"
+ica_algo = "shica_ml"
 n_arrows = 10
 random_state = 42
 rng = np.random.RandomState(random_state)
@@ -193,7 +193,7 @@ plt.show()
 
 # %%
 # Histogram of the correlations
-fig, ax = plt.subplots(figsize=(8, 6))
+fig, ax = plt.subplots(figsize=(11, 8))
 nbins = 50
 bins = np.linspace(-1, 1, nbins + 1)
 n, bins, patches = ax.hist(upper_triangular_values, bins=bins, edgecolor='black')
@@ -208,15 +208,17 @@ for center, patch in zip(bin_centers, patches):
 ax.vlines(x=0, ymin=0, ymax=n.max(), ls="--", colors="grey")
 ax.grid()
 ax.set_xlabel("Spearman's rank correlation")
-ax.set_ylabel("Number of pairs of permutations")
+label = ax.set_ylabel("Number of pairs\nof permutations")
+label.set_position((0., 0.42))
 # Add a text box for the mean
 textstr = f"Average = {avg_corr:.2f}"
 props = dict(boxstyle="round", facecolor="white", alpha=0.8)
-ax.text(0.38, 0.95, textstr, transform=ax.transAxes,
+ax.text(0.48, 0.95, textstr, transform=ax.transAxes,
         verticalalignment='top', horizontalalignment='right', bbox=props)
-
+# save
 save = True
 if save:
+    # fig.subplots_adjust(left=0.15, bottom=0.15, top=1.1)
     figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments/6_figures//"
     plt.savefig(figures_dir + f"histogram_spearmanr_coefs_P.pdf", bbox_inches="tight")
 plt.show()
