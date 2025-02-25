@@ -10,14 +10,16 @@ from shica import shica_j, shica_ml
 
 def micado(
     X,
-    shared_permutation=True,
+    shared_causal_ordering=True,
     ica_algo="shica_ml",
     max_iter=3000,
     tol=1e-8,
     random_state=None,
     new_find_order_function=False,
+    return_full=False,
 ):
-    """Implementation of the Multi-view ICA-based Causal Discovery algorithm.
+    """
+    Implementation of the Multi-view ICA-based Causal Discovery algorithm.
 
     Parameters
     ----------
@@ -26,7 +28,7 @@ def micado(
         ``n_components`` is the number of components, and ``n_samples`` is
         the number of samples.
 
-    shared_permutation : bool (default=True)
+    shared_causal_ordering : bool (default=True)
         Whether we estimate a causal order common to all views, or
         one causal order per view.
 
@@ -47,6 +49,13 @@ def micado(
     random_state : int, optional (default=None)
         ``random_state`` is the seed used by the random number generator.
 
+    new_find_order_function : bool (default=False)
+        Whether we use a new heuristic function to find P and T from B,
+        or the one implemented in the original LiNGAM.
+
+    return_full : bool (default=False)
+        Whether we return all parameters or only the most important ones.
+
     Returns
     -------
     B : ndarray, shape (n_views, n_components, n_components)
@@ -58,13 +67,14 @@ def micado(
 
     P : ndarray, shape (n_components, n_components) or (n_views, n_components, n_components)
         Causal order(s) represented by a permutation matrix or multiple permutation 
-        matrices, depending on ``shared_permutation``.
+        matrices, depending on ``shared_causal_ordering``.
 
     S_avg: ndarray, shape (n_components, n_samples)
-        Source estimates.
+        Source estimates. Only returned if return_full==True.
 
     W: ndarray, shape (n_views, n_components, n_components)
-        Unmixing matrices found by the multiview ICA algorithm.
+        Unmixing matrices found by the multiview ICA algorithm. 
+        Only returned if return_full==True.
     """
     m, p, n = X.shape
     
@@ -97,7 +107,7 @@ def micado(
         find_permutation = find_order
     else:
         find_permutation = _estimate_causal_order
-    if shared_permutation:
+    if shared_causal_ordering:
         B_avg = np.mean(np.abs(B), axis=0)
         order = find_permutation(B_avg)
         P = np.eye(p)[order]
@@ -109,11 +119,14 @@ def micado(
             P[i] = np.eye(p)[order]
         T = np.array([Pi @ Bi @ Pi.T for Pi, Bi in zip(P, B)])
 
-    return B, T, P, S_avg, W
+    if return_full:
+        return B, T, P, S_avg, W
+    return B, T, P
 
 
 def find_order(B):
-    """This function finds a permutation matrix P such that P @ B @ P.T
+    """
+    This function finds a permutation matrix P such that P @ B @ P.T
     is as close as possible to strictly lower triangular.
 
     Parameters
@@ -140,9 +153,10 @@ def find_order(B):
     return order
 
 
-# functions from https://github.com/cdt15/lingam/blob/master/lingam/ica_lingam.py
 def _search_causal_order(matrix):
-    """Obtain a causal order from the given matrix strictly.
+    """
+    Obtain a causal order from the given matrix strictly.
+    This function comes from https://github.com/cdt15/lingam/blob/master/lingam/ica_lingam.py
 
     Parameters
     ----------
@@ -182,7 +196,9 @@ def _search_causal_order(matrix):
 
 
 def _estimate_causal_order(matrix):
-    """Obtain a lower triangular from the given matrix approximately.
+    """
+    Obtain a lower triangular from the given matrix approximately.
+    This function comes from https://github.com/cdt15/lingam/blob/master/lingam/ica_lingam.py
 
     Parameters
     ----------
