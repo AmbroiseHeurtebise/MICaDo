@@ -1,5 +1,6 @@
 import pandas as pd
-import numpy as np
+import numpy as npf
+from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import seaborn as sns
@@ -20,22 +21,22 @@ plt.rcParams.update(rc)
 # parameters 
 nb_seeds = 50
 n_metrics = 7
-nb_gaussian_sources_list = [4, 0, 2]
+nb_gaussian_disturbances_list = [4, 0, 2]
 shared_permutation = True
-errors = ["error_B", "error_T", "error_P_spearmanr"]  # "error_P_exact"
+errors = ["error_B", "error_T", "error_P_exact"]  # "error_P_spearmanr"
 if shared_permutation:
-    # error_names = [r"Error on $B^i$", r"Error on $T^i$", r"Error rate on $P$"]
-    error_names = [r"Error on $B^i$", r"Error on $T^i$", "Spearman's rank\ncorrelation on" + r" $P$"]
+    error_names = [r"Error on $B^i$", r"Error on $T^i$", r"Error rate on $P$"]
+    # error_names = [r"Error on $B^i$", r"Error on $T^i$", "Spearman's rank\ncorrelation on" + r" $P$"]
 else:
-    # error_names = [r"Error on $B^i$", r"Error on $T^i$", r"Error rate on $P^i$"]
-    error_names = [r"Error on $B^i$", r"Error on $T^i$", "Spearman's rank\ncorrelation on" + r" $P^i$"]
+    error_names = [r"Error on $B^i$", r"Error on $T^i$", r"Error rate on $P^i$"]
+    # error_names = [r"Error on $B^i$", r"Error on $T^i$", "Spearman's rank\ncorrelation on" + r" $P^i$"]
 titles = ["Gaussian", "Non-Gaussian", "Half-G / Half-NG"]
 estimator = "mean"
 # labels = ['MICaDo-ML', 'MICaDo-J', 'ICA-LiNGAM', 'MultiGroupDirectLiNGAM', 'MICaDo-MVICA']
 labels = ['MICaDo-ML', 'MICaDo-J', 'ICA-LiNGAM', 'MultiGroupDirectLiNGAM']
 
 # read dataframe
-results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/results_timepoints_in_xaxis/"
+results_dir = "/storage/store2/work/aheurteb/MICaDo/simulation_studies/results/results_timepoints_in_xaxis/"
 if shared_permutation:
     parent_dir = "shared_P"
 else:
@@ -56,8 +57,8 @@ hue_order = ["shica_ml", "shica_j", "lingam", "multi_group_direct_lingam"]
 fig, axes = plt.subplots(3, 3, figsize=(12, 6), sharex="col", sharey="row")
 for i, ax in enumerate(axes.flat):
     # number of Gaussian sources; one for each of the 3 columns
-    nb_gaussian_sources = nb_gaussian_sources_list[i % 3]
-    data = filtered_df[filtered_df["nb_gaussian_sources"] == nb_gaussian_sources]
+    nb_gaussian_disturbances = nb_gaussian_disturbances_list[i % 3]
+    data = filtered_df[filtered_df["nb_gaussian_disturbances"] == nb_gaussian_disturbances]
     # error; one for each of the 3 rows
     y = errors[i // 3]
     # subplot
@@ -116,7 +117,7 @@ fig.legend(
 )
 
 # save figure
-figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/figures/"
+figures_dir = Path("/storage/store2/work/aheurteb/MICaDo/simulation_studies/figures")
 figures_dir.mkdir(parents=True, exist_ok=True)
-plt.savefig(figures_dir + f"simulation_{parent_dir}.pdf", bbox_inches="tight")
+plt.savefig(figures_dir / f"simulation_{parent_dir}.pdf", bbox_inches="tight")
 plt.show()

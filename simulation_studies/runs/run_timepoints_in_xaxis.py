@@ -47,7 +47,7 @@ df = pd.DataFrame(dict_res)
 print(df)
 
 # save dataframe
-results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/"
+results_dir = "/storage/store2/work/aheurteb/MICaDo/simulation_studies/results/"
 if shared_causal_ordering:
     parent_dir = "results_timepoints_in_xaxis/shared_P/"
 else:

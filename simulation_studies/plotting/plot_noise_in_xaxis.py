@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import seaborn as sns
@@ -19,17 +20,17 @@ plt.rcParams.update(rc)
 
 # parameters 
 nb_seeds = 50
-nb_gaussian_sources_list = [4, 0, 2]
-# errors = ["error_B", "error_T", "error_P_exact"]
-errors = ["error_B", "error_T", "error_P_spearmanr"]
-# error_names = [r"Error on $B^i$", r"Error on $T^i$", r"Error rate on $P$"]
-error_names = [r"Error on $B^i$", r"Error on $T^i$", "Spearman's rank\ncorrelation on" + r" $P$"]
+nb_gaussian_disturbances_list = [4, 0, 2]
+errors = ["error_B", "error_T", "error_P_exact"]
+# errors = ["error_B", "error_T", "error_P_spearmanr"]
+error_names = [r"Error on $B^i$", r"Error on $T^i$", r"Error rate on $P$"]
+# error_names = [r"Error on $B^i$", r"Error on $T^i$", "Spearman's rank\ncorrelation on" + r" $P$"]
 titles = ["Gaussian", "Non-Gaussian", "Half-G / Half-NG"]
 estimator = "mean"
 labels = ['MICaDo-ML', 'MICaDo-J', 'ICA-LiNGAM', 'MultiGroupDirectLiNGAM', 'MICaDo-MVICA']
 
 # read dataframe
-results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/"
+results_dir = "/storage/store2/work/aheurteb/MICaDo/simulation_studies/results/"
 parent_dir = "results_noise_in_xaxis/"
 save_name = f"DataFrame_with_{nb_seeds}_seeds_and_7_metrics"
 save_path = results_dir + parent_dir + save_name
@@ -45,8 +46,8 @@ hue_order = ["shica_ml", "shica_j", "lingam", "multi_group_direct_lingam", "mult
 fig, axes = plt.subplots(3, 3, figsize=(12, 6), sharex="col", sharey="row")
 for i, ax in enumerate(axes.flat):
     # number of Gaussian sources; one for each of the 3 columns
-    nb_gaussian_sources = nb_gaussian_sources_list[i % 3]
-    data = filtered_df[filtered_df["nb_gaussian_sources"] == nb_gaussian_sources]
+    nb_gaussian_disturbances = nb_gaussian_disturbances_list[i % 3]
+    data = filtered_df[filtered_df["nb_gaussian_disturbances"] == nb_gaussian_disturbances]
     # error; one for each of the 3 rows
     y = errors[i // 3]
     # subplot
@@ -99,7 +100,7 @@ fig.legend(
 )
 
 # save figure
-figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/figures/"
+figures_dir = Path("/storage/store2/work/aheurteb/MICaDo/simulation_studies/figures")
 figures_dir.mkdir(parents=True, exist_ok=True)
-plt.savefig(figures_dir + "simulation_noise_in_xaxis.pdf", bbox_inches="tight")
+plt.savefig(figures_dir / "simulation_noise_in_xaxis.pdf", bbox_inches="tight")
 plt.show()

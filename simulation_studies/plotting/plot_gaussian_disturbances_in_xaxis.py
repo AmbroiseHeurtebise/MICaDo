@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import seaborn as sns
@@ -26,8 +27,8 @@ labels = ['MICaDo-ML', 'MICaDo-J', 'ICA-LiNGAM', 'MultiGroupDirectLiNGAM', 'MICa
 hue_order = ["shica_ml", "shica_j", "lingam", "multi_group_direct_lingam", "multiviewica"]
 
 # read dataframe
-results_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/results/"
-parent_dir = "results_gaussian_sources_in_xaxis/"
+results_dir = "/storage/store2/work/aheurteb/MICaDo/simulation_studies/results/"
+parent_dir = "results_gaussian_disturbances_in_xaxis/"
 save_name = f"DataFrame_with_{nb_seeds}_seeds_and_7_metrics"
 save_path = results_dir + parent_dir + save_name
 df = pd.read_csv(save_path)
@@ -37,21 +38,21 @@ fig, axes = plt.subplots(1, 3, figsize=(12, 3), sharex=True)
 for i, ax in enumerate(axes):
     y = errors[i]
     sns.lineplot(
-        data=df, x="nb_gaussian_sources", y=y, linewidth=2.5, hue="ica_algo", ax=ax, 
+        data=df, x="nb_gaussian_disturbances", y=y, linewidth=2.5, hue="ica_algo", ax=ax, 
         errorbar=('ci', 95), hue_order=hue_order, style_order=hue_order, style="ica_algo",
         dashes=['', '', (2, 2), (2, 2), ''])
     if i != 2:
         ax.set_yscale("log")
         ymin, ymax = ax.get_ylim()
         ax.set_ylim(ymin, 1e3)
-    ax.set_xticks(np.unique(df["nb_gaussian_sources"]))
-    ax.set_xticklabels(np.unique(df["nb_gaussian_sources"]))
+    ax.set_xticks(np.unique(df["nb_gaussian_disturbances"]))
+    ax.set_xticklabels(np.unique(df["nb_gaussian_disturbances"]))
     ax.set_xlabel("")
     ax.set_ylabel("")
     ax.set_title(error_names[i], fontsize=fontsize)
     ax.grid(which='both', linewidth=0.5, alpha=0.5)
     ax.get_legend().remove()
-xlabel = fig.supxlabel("Number of Gaussian sources", fontsize=fontsize)
+xlabel = fig.supxlabel("Number of Gaussian disturbances", fontsize=fontsize)
 xlabel.set_position((0.5, 0.09))
 ylabel = fig.supylabel("Errors", fontsize=fontsize)
 ylabel.set_position((0.025, 0.5))
@@ -72,7 +73,7 @@ fig.legend(
 )
 
 # save figure
-figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/simulation_studies/figures/"
+figures_dir = Path("/storage/store2/work/aheurteb/MICaDo/simulation_studies/figures")
 figures_dir.mkdir(parents=True, exist_ok=True)
-plt.savefig(figures_dir + f"simulation_gaussian_sources.pdf", bbox_inches="tight")
+plt.savefig(figures_dir / f"simulation_gaussian_disturbances.pdf", bbox_inches="tight")
 plt.show()
