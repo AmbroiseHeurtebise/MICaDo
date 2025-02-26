@@ -21,15 +21,6 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -e .
-    
-      - name: List Installed Packages
-        run: pip list
-
-      - name: Show Python Paths
-        run: python -c "import sys; print(sys.path)"
-
-      - name: Try Importing shica
-        run: python -c "import shica; print('shica import successful')"
 
       - name: Run Basic Test
         run: |
