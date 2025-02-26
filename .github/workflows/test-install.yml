@@ -25,6 +25,12 @@ jobs:
       - name: List Installed Packages
         run: pip list
 
+      - name: Show Python Paths
+        run: python -c "import sys; print(sys.path)"
+
+      - name: Try Importing shica
+        run: python -c "import shica; print('shica import successful')"
+
       - name: Run Basic Test
         run: |
           python -c "import multiviewica; import shica; print('Install successful')"
