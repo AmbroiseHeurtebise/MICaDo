@@ -16,9 +16,9 @@ dependencies = [
     "scikit-learn>=0.23",
     "python-picard",
     "scipy>=0.18.0",
-    "matplotlib>=2.0.0",
+    "matplotlib>=3.5.0",
     "multiviewica",
-    "shica"
+    "shica@git+https://github.com/hugorichard/ShICA"
 ]
 
 [tool.setuptools]
