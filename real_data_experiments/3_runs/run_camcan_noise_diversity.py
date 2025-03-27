@@ -1,4 +1,3 @@
-# %%
 import numpy as np
 import pickle
 from time import time
@@ -33,7 +32,6 @@ load_dir = expes_dir / f"2_data_envelopes/{parcellation}_{n_subjects}_subjects"
 X_loaded = np.load(load_dir / f"X.npz")
 X_list = [X_loaded[key] for key in X_loaded.files]
 
-# %%
 # Load labels
 with open(load_dir / f"labels.pkl", "rb") as f:
     labels_list = pickle.load(f)
@@ -71,14 +69,12 @@ X = np.array(X)  # shape (98, 10, 1760)
 labels = [label for label in labels if label.name in selected_label_names]
 n_subjects_full = len(X)
 
-# %%
 # Apply ShICA-ML
 start = time()
 W, Sigmas, S_avg = shica_ml(X)
 execution_time = time() - start
 print(f"The method took {execution_time:.2f} s.")
 
-# %%
 # Save data
 save_dir = Path(expes_dir / f"4_results/noise_diversity_{ica_algo}")
 save_dir.mkdir(parents=True, exist_ok=True)
