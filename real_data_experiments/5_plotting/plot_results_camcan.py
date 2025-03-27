@@ -18,7 +18,7 @@ groups = False
 ica_algo = "multiviewica"
 
 # Load results
-expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
+expes_dir = Path("/storage/store2/work/aheurteb/MICaDo/real_data_experiments")
 if only_clean:
     results_dir = Path(expes_dir / f"4_results/{parcellation}_{n_subjects}_subjects_clean")
 else:

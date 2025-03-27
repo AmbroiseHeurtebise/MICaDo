@@ -17,7 +17,7 @@ random_state = 42
 rng = np.random.RandomState(random_state)
 
 # Load results
-expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
+expes_dir = Path("/storage/store2/work/aheurteb/MICaDo/real_data_experiments")
 results_dir = Path(expes_dir / f"4_results/aparc_sub_{n_subjects}_subjects_{n_runs}_runs_{ica_algo}")
 
 P_total = np.load(results_dir / "P_total.npy")
@@ -66,7 +66,7 @@ ax.set_ylabel("Runs")
 
 save = True
 if save:
-    figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments/6_figures//"
+    figures_dir = "/storage/store2/work/aheurteb/MICaDo/real_data_experiments/6_figures//"
     plt.savefig(figures_dir + f"pearson_coefs_B.pdf", bbox_inches="tight")
 plt.show()
 
@@ -187,7 +187,7 @@ ax.set_ylabel("Runs")
 
 save = True
 if save:
-    figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments/6_figures//"
+    figures_dir = "/storage/store2/work/aheurteb/MICaDo/real_data_experiments/6_figures//"
     plt.savefig(figures_dir + f"spearmanr_coefs_P.pdf", bbox_inches="tight")
 plt.show()
 
@@ -219,7 +219,7 @@ ax.text(0.48, 0.95, textstr, transform=ax.transAxes,
 save = True
 if save:
     # fig.subplots_adjust(left=0.15, bottom=0.15, top=1.1)
-    figures_dir = "/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments/6_figures//"
+    figures_dir = "/storage/store2/work/aheurteb/MICaDo/real_data_experiments/6_figures//"
     plt.savefig(figures_dir + f"histogram_spearmanr_coefs_P.pdf", bbox_inches="tight")
 plt.show()
 
