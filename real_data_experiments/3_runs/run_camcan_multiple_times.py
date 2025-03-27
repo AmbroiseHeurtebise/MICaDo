@@ -10,6 +10,11 @@ N_JOBS = 4
 os.environ["OMP_NUM_THREADS"] = str(N_JOBS)
 os.environ["MKL_NUM_THREADS"] = str(N_JOBS)
 os.environ["NUMEXPR_NUM_THREADS"] = str(N_JOBS)
+os.environ["XLA_FLAGS"] = (
+    "--xla_cpu_multi_thread_eigen=false "
+    "intra_op_parallelism_threads=1 "
+    "--xla_force_host_platform_device_count=1"
+)
 
 # Parameters
 n_runs = 50
@@ -17,7 +22,7 @@ keep_subjects_rate = 1 / 2  # only keep 50% of the subjects
 ica_algo = "shica_ml"
 
 # Load data
-expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
+expes_dir = Path("/storage/store2/work/aheurteb/MICaDo/real_data_experiments")
 load_dir = expes_dir / f"2_data_envelopes/aparc_sub_152_subjects"
 
 X_loaded = np.load(load_dir / f"X.npz")

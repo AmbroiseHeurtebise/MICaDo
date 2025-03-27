@@ -11,6 +11,11 @@ N_JOBS = 4
 os.environ["OMP_NUM_THREADS"] = str(N_JOBS)
 os.environ["MKL_NUM_THREADS"] = str(N_JOBS)
 os.environ["NUMEXPR_NUM_THREADS"] = str(N_JOBS)
+os.environ["XLA_FLAGS"] = (
+    "--xla_cpu_multi_thread_eigen=false "
+    "intra_op_parallelism_threads=1 "
+    "--xla_force_host_platform_device_count=1"
+)
 
 # Parameters
 n_subjects = 152
@@ -18,11 +23,11 @@ parcellation = "aparc_sub"
 n_labels = 38
 subset = False
 group = False
-ica_algo = "multiviewica"
+ica_algo = "shica_ml"
 random_state = 42
 
 # Load data
-expes_dir = Path("/storage/store2/work/aheurteb/mvica_lingam/real_data_experiments")
+expes_dir = Path("/storage/store2/work/aheurteb/MICaDo/real_data_experiments")
 load_dir = expes_dir / f"2_data_envelopes/{parcellation}_{n_subjects}_subjects"
 
 X_loaded = np.load(load_dir / f"X.npz")
