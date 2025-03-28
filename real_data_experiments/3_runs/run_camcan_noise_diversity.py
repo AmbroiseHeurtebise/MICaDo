@@ -1,9 +1,11 @@
+# %%
 import numpy as np
 import pickle
 from time import time
 from pathlib import Path
 import os
 from shica import shica_ml
+import matplotlib.pyplot as plt
 
 
 # Limit the number of jobs
@@ -21,9 +23,10 @@ os.environ["XLA_FLAGS"] = (
 n_subjects = 152
 parcellation = "aparc_sub"
 n_labels = 38
-subset = False
+subset = 15  # or None
 ica_algo = "shica_ml"
 random_state = 42
+whitening = False
 
 # Load data
 expes_dir = Path("/storage/store2/work/aheurteb/MICaDo/real_data_experiments")
@@ -69,9 +72,53 @@ X = np.array(X)  # shape (98, 10, 1760)
 labels = [label for label in labels if label.name in selected_label_names]
 n_subjects_full = len(X)
 
+# whiten X
+def whiten_data(X):
+    n_views, n_components, n_timepoints = X.shape
+    X_flat = X.reshape(n_views * n_components, n_timepoints)
+    mean = X_flat.mean(axis=1, keepdims=True)
+    X_centered = X_flat - mean
+    cov = np.cov(X_centered)
+    eigvals, eigvecs = np.linalg.eigh(cov)
+    whitening_matrix = eigvecs @ np.diag(1.0 / np.sqrt(eigvals + 1e-10)) @ eigvecs.T
+    X_whitened = whitening_matrix @ X_centered
+    return X_whitened.reshape(n_views, n_components, n_timepoints)
+
+if whitening:
+    X = whiten_data(X)
+
+if subset:
+    rng = np.random.RandomState(random_state)
+    idx = rng.choice(len(X), replace=False, size=subset)
+    X = X[idx]
+
+# %%
+# batch averaging of either X or S
+def batch_avg_X(X, n_batches=40):
+    m, p, n = X.shape
+    X_res = np.zeros((m, p, n // n_batches))
+    batch_size = n // n_batches
+    for i in range(n_batches):
+        X_res += X[:, :, i*batch_size: (i+1)*batch_size]
+    X_res /= n_batches
+    return X_res
+
+def batch_avg_S(S, n_batches=40):
+    p, n = S.shape
+    S_res = np.zeros((p, n // n_batches))
+    batch_size = n // n_batches
+    for i in range(n_batches):
+        S_res += S[:, i*batch_size: (i+1)*batch_size]
+    S_res /= n_batches
+    return S_res
+
+X_avg = batch_avg_X(X)
+
+# %%
 # Apply ShICA-ML
 start = time()
-W, Sigmas, S_avg = shica_ml(X)
+Sigmas_init = np.ones((X.shape[0], X.shape[1]))
+W, Sigmas, S_avg = shica_ml(X, Sigmas_init=Sigmas_init, init=None)
 execution_time = time() - start
 print(f"The method took {execution_time:.2f} s.")
 
@@ -81,3 +128,5 @@ save_dir.mkdir(parents=True, exist_ok=True)
 np.save(save_dir / "W.npy", W)
 np.save(save_dir / "Sigmas.npy", Sigmas)
 np.save(save_dir / "S_avg.npy", S_avg)
+
+# %%
