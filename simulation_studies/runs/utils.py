@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import pearsonr
+from scipy.stats import gennorm, pearsonr
 from picard import amari_distance
 import lingam
 from micado.micado import micado
@@ -8,16 +8,31 @@ from micado.micado import micado
 # function that samples data according to our model
 # we use similar parameters as in Fig. 2 of the ShICA paper
 def sample_data(
-    m, p, n, noise_level=1., nb_gaussian_disturbances=0, rng=None, shared_causal_ordering=True,
+    m, p, n, noise_level=1., density="gauss_super", nb_gaussian_disturbances=0, 
+    random_state=None, shared_causal_ordering=True,
 ):
-    # sources
-    S_ng = rng.laplace(size=(p-nb_gaussian_disturbances, n))
-    S_g = rng.normal(size=(nb_gaussian_disturbances, n))
-    S = np.vstack((S_ng, S_g))
+    rng = np.random.RandomState(random_state)
+    if density == "gauss_super":
+        # sources
+        S_ng = rng.laplace(size=(p-nb_gaussian_disturbances, n))
+        S_g = rng.normal(size=(nb_gaussian_disturbances, n))
+        S = np.vstack((S_ng, S_g))
+        # noise variances
+        sigmas = np.ones((m, p)) * 1 / 2
+        if nb_gaussian_disturbances != 0:
+            sigmas[:, -nb_gaussian_disturbances:] = rng.uniform(size=(m, nb_gaussian_disturbances))
+    elif density == "sub_gauss_super":
+        # sources
+        S1 = gennorm.rvs(1.5, size=(p//3, n), random_state=random_state)  # super-Gaussian (Laplace)
+        S2 = gennorm.rvs(2, size=(p-2*(p//3), n), random_state=random_state)  # Gaussian
+        S3 = gennorm.rvs(2.5, size=(p//3, n), random_state=random_state)  # sub-Gaussian
+        S = np.vstack((S1, S2, S3))
+        # noise variances
+        sigmas = rng.uniform(size=(m, p))
+    else:
+        raise ValueError("The parameter 'density' should be either 'gauss_super' or 'sub_gauss_super'")
+    
     # noise
-    sigmas = np.ones((m, p)) * 1 / 2
-    if nb_gaussian_disturbances != 0:
-        sigmas[:, -nb_gaussian_disturbances:] = rng.uniform(size=(m, nb_gaussian_disturbances))
     N = noise_level * rng.normal(scale=sigmas[:, :, np.newaxis], size=(m, p, n))
     # causal effect matrices T
     T = rng.normal(size=(m, p, p))
@@ -44,22 +59,25 @@ def run_experiment(
     m,
     p,
     n,
-    nb_gaussian_disturbances,
-    random_state,
-    ica_algo,
     noise_level=1.,
+    density="gauss_super",
+    nb_gaussian_disturbances=0,
+    ica_algo="shica_ml",
+    random_state=None,
     shared_causal_ordering=True,
-    new_find_order_function=True,
+    new_find_order_function=False,
 ):
-    rng = np.random.RandomState(random_state)
+    if density == "sub_gauss_super":
+        nb_gaussian_disturbances = p - 2 * (p // 3)
     # generate observations X, causal order(s) P, and causal effects B and T
     X, B, T, P, A = sample_data(
         m=m,
         p=p,
         n=n,
         noise_level=noise_level,
+        density=density,
         nb_gaussian_disturbances=nb_gaussian_disturbances,
-        rng=rng,
+        random_state=random_state,
         shared_causal_ordering=shared_causal_ordering,
     )
 
@@ -158,10 +176,12 @@ def run_experiment(
     
     # output
     output = {
-        "ica_algo": ica_algo,
-        "nb_gaussian_disturbances": nb_gaussian_disturbances,
+        "m": m,
+        "p": p,
         "n": n,
         "noise_level": noise_level,
+        "ica_algo": ica_algo,
+        "nb_gaussian_disturbances": nb_gaussian_disturbances,
         "random_state": random_state,
         "error_B": error_B,
         "error_B_abs": error_B_abs,
