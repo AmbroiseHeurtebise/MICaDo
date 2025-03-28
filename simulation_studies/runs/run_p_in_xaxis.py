@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
+from time import time
 from itertools import product
 from joblib import Parallel, delayed
 from utils import run_experiment
@@ -28,6 +29,7 @@ algo_list = ["multiviewica", "shica_j", "shica_ml", "multi_group_direct_lingam",
 nb_expes = len(m_list) * len(p_list) * len(random_state_list) * len(algo_list)
 print(f"\nTotal number of experiments : {nb_expes}")
 print("\n###################################### Start ######################################")
+start = time()
 dict_res = Parallel(n_jobs=N_JOBS)(
     delayed(run_experiment)(
         m=m,
@@ -43,6 +45,8 @@ dict_res = Parallel(n_jobs=N_JOBS)(
 print("\n################################ Obtained DataFrame ################################")
 df = pd.DataFrame(dict_res)
 print(df)
+execution_time = time() - start
+print(f"The experiment took {execution_time:.2f} s.")
 
 # save dataframe
 results_dir = "/storage/store2/work/aheurteb/MICaDo/simulation_studies/results/results_p_in_xaxis/"
