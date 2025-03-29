@@ -15,7 +15,8 @@ def sample_data(
     density="gauss_super",
     beta1=1,
     beta2=3,
-    nb_gaussian_disturbances=0, 
+    nb_gaussian_disturbances=0,
+    nb_equal_variances=0,
     random_state=None,
     shared_causal_ordering=True,
 ):
@@ -29,6 +30,9 @@ def sample_data(
         sigmas = np.ones((m, p)) * 1 / 2
         if nb_gaussian_disturbances != 0:
             sigmas[:, -nb_gaussian_disturbances:] = rng.uniform(size=(m, nb_gaussian_disturbances))
+            if nb_equal_variances > 0:
+                indices = rng.choice(m, size=nb_equal_variances, replace=False)
+                sigmas[indices, -nb_gaussian_disturbances:] = sigmas[indices, -nb_gaussian_disturbances][:, np.newaxis]
     elif density == "sub_gauss_super":
         # sources
         S1 = gennorm.rvs(beta1, size=(p//3, n), random_state=random_state)
@@ -72,6 +76,7 @@ def run_experiment(
     beta1=1,
     beta2=3,
     nb_gaussian_disturbances=0,
+    nb_equal_variances=0,
     ica_algo="shica_ml",
     random_state=None,
     shared_causal_ordering=True,
@@ -89,6 +94,7 @@ def run_experiment(
         beta1=beta1,
         beta2=beta2,
         nb_gaussian_disturbances=nb_gaussian_disturbances,
+        nb_equal_variances=nb_equal_variances,
         random_state=random_state,
         shared_causal_ordering=shared_causal_ordering,
     )
@@ -194,6 +200,7 @@ def run_experiment(
         "noise_level": noise_level,
         "ica_algo": ica_algo,
         "nb_gaussian_disturbances": nb_gaussian_disturbances,
+        "nb_equal_variances": nb_equal_variances,
         "random_state": random_state,
         "error_B": error_B,
         "error_B_abs": error_B_abs,
