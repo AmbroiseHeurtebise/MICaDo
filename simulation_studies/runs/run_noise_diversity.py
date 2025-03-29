@@ -22,7 +22,7 @@ noise_level = 1.
 
 # varying parameters
 nb_equal_variances_list = np.arange(m+1)
-nb_seeds = 10
+nb_seeds = 50
 random_state_list = np.arange(nb_seeds)
 algo_list = ["shica_j", "shica_ml"]
 
