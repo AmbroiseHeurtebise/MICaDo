@@ -19,7 +19,7 @@ rc = {
 plt.rcParams.update(rc)
 
 # parameters 
-nb_seeds = 2
+nb_seeds = 20
 metric = "error_B"  # or "error_T", "error_P_exact", "error_P_spearmanr", "amari_distance"
 include_multiviewica = True
 
@@ -29,8 +29,9 @@ save_name = f"DataFrame_with_{nb_seeds}_seeds"
 save_path = results_dir + save_name
 df = pd.read_csv(save_path)
 
-# number of views
+# number of views and disturbances
 m_list = np.sort(np.unique(df["m"]))
+p_list = np.sort(np.unique(df["p"]))
 
 # metric name
 if metric == "error_B":
@@ -58,7 +59,7 @@ else:
     filtered_df = df[df["ica_algo"] != "multiviewica"]
 
 # subplots
-fig, axes = plt.subplots(2, 3, figsize=(12, 5), sharex=True, sharey="row")
+fig, axes = plt.subplots(2, 3, figsize=(12, 5), sharex=True, sharey=True)
 for i, ax in enumerate(axes.flat):
     m = m_list[i]
     data = filtered_df[filtered_df["m"] == m]
@@ -75,6 +76,7 @@ xlabel = fig.supxlabel(r"Number of disturbances $p$", fontsize=fontsize)
 ylabel = fig.supylabel(metric_name, fontsize=fontsize)
 xlabel.set_position((0.5, 0.055))
 ylabel.set_position((0.03, 0.5))
+ax.set_xticks(p_list)
 plt.tight_layout()
 plt.subplots_adjust(hspace=0.3)
 
