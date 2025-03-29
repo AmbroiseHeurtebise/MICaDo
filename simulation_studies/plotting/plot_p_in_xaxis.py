@@ -69,7 +69,8 @@ for i, ax in enumerate(axes.flat):
     data = filtered_df[filtered_df["m"] == m]
     sns.lineplot(
         data=data, x="p", y=metric, linewidth=2.5, hue="ica_algo", ax=ax, estimator=np.median,
-        errorbar=('ci', 95), hue_order=hue_order, style_order=hue_order, style="ica_algo", dashes=dashes)
+        errorbar=('ci', 95), hue_order=hue_order, style_order=hue_order, style="ica_algo",
+        dashes=dashes, markers=True)
     ax.set_yscale("log")
     ax.set_xlabel("")
     ax.set_ylabel("")
@@ -87,13 +88,19 @@ plt.subplots_adjust(hspace=0.3)
 # legend
 palette = sns.color_palette()[:5]
 legend_styles = [
-    Line2D([0], [0], color=palette[0], linewidth=2.5, linestyle='-'),
-    Line2D([0], [0], color=palette[1], linewidth=2.5, linestyle='-'),
-    Line2D([0], [0], color=palette[2], linewidth=2.5, linestyle='--'),
-    Line2D([0], [0], color=palette[3], linewidth=2.5, linestyle='--'),
+    Line2D([0], [0], color=palette[0], linewidth=2.5, linestyle='-', marker='o', 
+           markeredgecolor="white", markersize=6),
+    Line2D([0], [0], color=palette[1], linewidth=2.5, linestyle='-', marker='X', 
+           markeredgecolor="white", markersize=7),
+    Line2D([0], [0], color=palette[2], linewidth=2.5, linestyle='--', marker='s', 
+           markeredgecolor="white", markersize=5),
+    Line2D([0], [0], color=palette[3], linewidth=2.5, linestyle='--', marker='P', 
+           markeredgecolor="white", markersize=6),
 ]
 if include_multiviewica:
-    legend_styles.append(Line2D([0], [0], color=palette[4], linewidth=2.5, linestyle='-'))
+    legend_styles.append(
+        Line2D([0], [0], color=palette[4], linewidth=2.5, linestyle='-', marker='D', 
+               markeredgecolor="white", markersize=5))
 ncol = 3 if include_multiviewica else 4
 y_leg = 1.05 if include_multiviewica else 1.03
 fig.legend(
