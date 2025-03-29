@@ -58,7 +58,7 @@ execution_time = time() - start
 print(f"The experiment took {execution_time:.2f} s.")
 
 # save dataframe
-results_dir = "/storage/store2/work/aheurteb/MICaDo/simulation_studies/results/results_density_of_Ti/"
+results_dir = "/storage/store2/work/aheurteb/MICaDo/simulation_studies/results/results_sparsity_of_Ti/"
 save_name = f"DataFrame_with_{nb_seeds}_seeds"
 save_path = results_dir + save_name
 df.to_csv(save_path, index=False)
