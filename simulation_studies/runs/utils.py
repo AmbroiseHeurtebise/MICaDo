@@ -8,8 +8,16 @@ from micado.micado import micado
 # function that samples data according to our model
 # we use similar parameters as in Fig. 2 of the ShICA paper
 def sample_data(
-    m, p, n, noise_level=1., density="gauss_super", nb_gaussian_disturbances=0, 
-    random_state=None, shared_causal_ordering=True,
+    m,
+    p,
+    n,
+    noise_level=1.,
+    density="gauss_super",
+    beta1=1,
+    beta2=3,
+    nb_gaussian_disturbances=0, 
+    random_state=None,
+    shared_causal_ordering=True,
 ):
     rng = np.random.RandomState(random_state)
     if density == "gauss_super":
@@ -23,9 +31,9 @@ def sample_data(
             sigmas[:, -nb_gaussian_disturbances:] = rng.uniform(size=(m, nb_gaussian_disturbances))
     elif density == "sub_gauss_super":
         # sources
-        S1 = gennorm.rvs(1.5, size=(p//3, n), random_state=random_state)  # super-Gaussian (Laplace)
+        S1 = gennorm.rvs(beta1, size=(p//3, n), random_state=random_state)
         S2 = gennorm.rvs(2, size=(p-2*(p//3), n), random_state=random_state)  # Gaussian
-        S3 = gennorm.rvs(2.5, size=(p//3, n), random_state=random_state)  # sub-Gaussian
+        S3 = gennorm.rvs(beta2, size=(p//3, n), random_state=random_state)
         S = np.vstack((S1, S2, S3))
         # noise variances
         sigmas = rng.uniform(size=(m, p))
@@ -61,6 +69,8 @@ def run_experiment(
     n,
     noise_level=1.,
     density="gauss_super",
+    beta1=1,
+    beta2=3,
     nb_gaussian_disturbances=0,
     ica_algo="shica_ml",
     random_state=None,
@@ -76,6 +86,8 @@ def run_experiment(
         n=n,
         noise_level=noise_level,
         density=density,
+        beta1=beta1,
+        beta2=beta2,
         nb_gaussian_disturbances=nb_gaussian_disturbances,
         random_state=random_state,
         shared_causal_ordering=shared_causal_ordering,

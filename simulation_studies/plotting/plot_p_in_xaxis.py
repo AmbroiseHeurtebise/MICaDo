@@ -22,10 +22,14 @@ plt.rcParams.update(rc)
 nb_seeds = 20
 metric = "error_B"  # or "error_T", "error_P_exact", "error_P_spearmanr", "amari_distance"
 include_multiviewica = True
+beta1 = 1.5
+beta2 = 2.5
 
 # read dataframe
+beta1_str = str(beta1).replace('.', '')
+beta2_str = str(beta2).replace('.', '')
 results_dir = "/storage/store2/work/aheurteb/MICaDo/simulation_studies/results/results_p_in_xaxis/"
-save_name = f"DataFrame_with_{nb_seeds}_seeds"
+save_name = f"DataFrame_with_{nb_seeds}_seeds_beta_{beta1_str}_{beta2_str}"
 save_path = results_dir + save_name
 df = pd.read_csv(save_path)
 

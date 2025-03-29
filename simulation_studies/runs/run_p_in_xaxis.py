@@ -17,11 +17,13 @@ os.environ["NUMEXPR_NUM_THREADS"] = str(N_JOBS)
 n = 1000
 noise_level = 1.
 density = "sub_gauss_super"
+beta1 = 1.5
+beta2 = 2.5
 
 # varying parameters
 m_list = [3, 5, 8, 12, 16, 20]
-p_list = [3, 6, 9]
-nb_seeds = 2
+p_list = [3, 6, 9, 12]
+nb_seeds = 20
 random_state_list = np.arange(nb_seeds)
 algo_list = ["multiviewica", "shica_j", "shica_ml", "multi_group_direct_lingam", "lingam"]
 
@@ -36,6 +38,8 @@ dict_res = Parallel(n_jobs=N_JOBS)(
         p=p,
         n=n,
         density=density,
+        beta1=beta1,
+        beta2=beta2,
         random_state=random_state,
         ica_algo=ica_algo,
         noise_level=noise_level,
@@ -49,8 +53,10 @@ execution_time = time() - start
 print(f"The experiment took {execution_time:.2f} s.")
 
 # save dataframe
+beta1_str = str(beta1).replace('.', '')
+beta2_str = str(beta2).replace('.', '')
 results_dir = "/storage/store2/work/aheurteb/MICaDo/simulation_studies/results/results_p_in_xaxis/"
-save_name = f"DataFrame_with_{nb_seeds}_seeds"
+save_name = f"DataFrame_with_{nb_seeds}_seeds_beta_{beta1_str}_{beta2_str}"
 save_path = results_dir + save_name
 df.to_csv(save_path, index=False)
 print("\n####################################### End #######################################")
