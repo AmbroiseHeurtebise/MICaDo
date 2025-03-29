@@ -15,6 +15,7 @@ def sample_data(
     density="gauss_super",
     beta1=1,
     beta2=3,
+    nb_zeros_Ti=0,
     nb_gaussian_disturbances=0,
     nb_equal_variances=0,
     random_state=None,
@@ -49,7 +50,10 @@ def sample_data(
     # causal effect matrices T
     T = rng.normal(size=(m, p, p))
     for i in range(m):
-        T[i][np.triu_indices(p, k=0)] = 0  # set the strictly upper triangular part to 0
+        T[i][np.triu_indices(p, k=0)] = 0
+        lower_tri_indices = np.tril_indices(p, k=-1)
+        zero_indices = rng.choice(len(lower_tri_indices[0]), size=nb_zeros_Ti, replace=False)
+        T[i][lower_tri_indices[0][zero_indices], lower_tri_indices[1][zero_indices]] = 0
     # causal order
     if shared_causal_ordering:
         P = np.eye(p)[rng.permutation(p)]
@@ -75,6 +79,7 @@ def run_experiment(
     density="gauss_super",
     beta1=1,
     beta2=3,
+    nb_zeros_Ti=0,
     nb_gaussian_disturbances=0,
     nb_equal_variances=0,
     ica_algo="shica_ml",
@@ -93,6 +98,7 @@ def run_experiment(
         density=density,
         beta1=beta1,
         beta2=beta2,
+        nb_zeros_Ti=nb_zeros_Ti,
         nb_gaussian_disturbances=nb_gaussian_disturbances,
         nb_equal_variances=nb_equal_variances,
         random_state=random_state,
@@ -201,6 +207,8 @@ def run_experiment(
         "ica_algo": ica_algo,
         "nb_gaussian_disturbances": nb_gaussian_disturbances,
         "nb_equal_variances": nb_equal_variances,
+        "nb_zeros_Ti": nb_zeros_Ti,
+        "shared_causal_ordering": shared_causal_ordering,
         "random_state": random_state,
         "error_B": error_B,
         "error_B_abs": error_B_abs,
