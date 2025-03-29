@@ -66,7 +66,7 @@ legend_styles = [
            markeredgecolor="white", markersize=7),
 ]
 fig.legend(
-    legend_styles, labels, bbox_to_anchor=(0.5, 1.03), loc="center",
+    legend_styles, labels, bbox_to_anchor=(0.5, 0.99), loc="center",
     ncol=2, borderaxespad=0., fontsize=fontsize
 )
 
