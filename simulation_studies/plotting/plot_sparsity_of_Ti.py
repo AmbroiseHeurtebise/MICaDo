@@ -19,8 +19,8 @@ rc = {
 plt.rcParams.update(rc)
 
 # parameters 
-nb_seeds = 2
-metrics = ["error_T", "error_P_spearmanr"]  # or "error_B", "error_P_exact", "amari_distance"
+nb_seeds = 20
+metrics = ["error_B_abs", "error_T_abs", "error_P_spearmanr"]  # or "error_B", "error_P_exact", "amari_distance"
 
 # read dataframe
 results_dir = "/storage/store2/work/aheurteb/MICaDo/simulation_studies/results/results_sparsity_of_Ti/"
@@ -31,9 +31,9 @@ df = pd.read_csv(save_path)
 # metric names
 metric_names = []
 for metric in metrics:
-    if metric == "error_B":
+    if metric == "error_B" or metric == "error_B_abs":
         metric_names.append(r"Error on $B^i$")
-    elif metric == "error_T":
+    elif metric == "error_T" or metric == "error_T_abs":
         metric_names.append(r"Error on $T^i$")
     elif metric == "error_P_exact":
         metric_names.append(r"Error on $P$")
@@ -46,33 +46,33 @@ for metric in metrics:
 labels = ['MICaDo-ML', 'MICaDo-J']
 dashes = ['', '']
 hue_order = ["shica_ml", "shica_j"]
-titles = ["Shared causal ordering", "Multiple causal orderings"]
+titles = ["Multiple causal orderings", "Shared causal ordering"]
 
 # subplots
-fig, axes = plt.subplots(2, 2, figsize=(8, 5), sharex=True, sharey="row")
+fig, axes = plt.subplots(3, 2, figsize=(8.5, 6), sharex=True)
 for i, ax in enumerate(axes.flat):
     metric = metrics[i // 2]
-    shared_causal_ordering = bool(1 - i % 2)
+    shared_causal_ordering = bool(i % 2)
     data = df[df["shared_causal_ordering"] == shared_causal_ordering]
     sns.lineplot(
         data=data, x="nb_zeros_Ti", y=metric, linewidth=2.5, hue="ica_algo", estimator=np.median,
         errorbar=('ci', 95), hue_order=hue_order, style_order=hue_order, style="ica_algo", ax=ax,
         dashes=dashes, markers=True)
-    if i // 2 == 0:
+    if i // 2 != 2:
         ax.set_yscale("log")
-    if i % 2 == 0:
-        ax.set_ylabel(metric_names[i // 2])
+    # if i % 2 == 0:
+    ax.set_ylabel(metric_names[i // 2])
     # title, grid, and legend
     if i // 2 == 0:
         ax.set_title(titles[i], fontsize=fontsize)
     ax.set_xlabel("")
     ax.grid(which='both', linewidth=0.5, alpha=0.5)
     ax.get_legend().remove()
-xlabel = fig.supxlabel(r"Sparsity of $T^i$", fontsize=fontsize)
-xlabel.set_position((0.5, 0.08))
+xlabel = fig.supxlabel(r"# sparse entries in each $T^i$", fontsize=fontsize)
+xlabel.set_position((0.5, 0.07))
 plt.gcf().align_labels()
 plt.tight_layout()
-plt.subplots_adjust(hspace=0.15, wspace=0.12)
+plt.subplots_adjust(hspace=0.15)
 
 # legend
 palette = sns.color_palette()[:2]
