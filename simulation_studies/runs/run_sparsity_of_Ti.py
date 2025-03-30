@@ -25,8 +25,8 @@ beta2 = 2.5
 # varying parameters
 shared_causal_ordering_list = [True, False]
 nb_zeros_Ti_list = np.arange(p * (p - 1) // 2 + 1)
-nb_seeds = 20
-random_state_list = np.arange(nb_seeds)
+nb_seeds = 30
+random_state_list = np.arange(20, 20 + nb_seeds)
 algo_list = ["shica_j", "shica_ml"]
 
 # run experiment
