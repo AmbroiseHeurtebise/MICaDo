@@ -53,7 +53,9 @@ sns.lineplot(
     dashes=dashes, markers=True)
 ax.set_yscale("log")
 ax.set_xlabel("# views with equal variances", fontsize=fontsize)
+ax.xaxis.set_label_coords(0.5, -0.17)
 ax.set_ylabel(metric_name, fontsize=fontsize)
+ax.yaxis.set_label_coords(-0.155, 0.5)
 ax.grid(which='both', linewidth=0.5, alpha=0.5)
 ax.get_legend().remove()
 
