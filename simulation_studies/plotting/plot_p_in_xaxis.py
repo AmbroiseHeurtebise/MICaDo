@@ -21,7 +21,7 @@ plt.rcParams.update(rc)
 # parameters 
 nb_seeds = 20
 metric = "error_B"  # or "error_T", "error_P_exact", "error_P_spearmanr", "amari_distance"
-include_multiviewica = True
+include_multiviewica = False
 beta1 = 1.5
 beta2 = 2.5
 
@@ -63,7 +63,7 @@ else:
     filtered_df = df[df["ica_algo"] != "multiviewica"]
 
 # subplots
-fig, axes = plt.subplots(2, 3, figsize=(12, 5), sharex=True, sharey=True)
+fig, axes = plt.subplots(2, 3, figsize=(12, 4.8), sharex=True, sharey=True)
 for i, ax in enumerate(axes.flat):
     m = m_list[i]
     data = filtered_df[filtered_df["m"] == m]
@@ -79,11 +79,14 @@ for i, ax in enumerate(axes.flat):
     ax.get_legend().remove()
 xlabel = fig.supxlabel(r"Number of disturbances $p$", fontsize=fontsize)
 ylabel = fig.supylabel(metric_name, fontsize=fontsize)
-xlabel.set_position((0.5, 0.055))
-ylabel.set_position((0.03, 0.5))
+xlabel.set_position((0.5, 0.07))
+ylabel.set_position((0.032, 0.5))
 ax.set_xticks(p_list)
+if include_multiviewica:
+    ymin, ymax = ax.get_ylim()
+    ax.set_ylim(ymin, 1e2)
 plt.tight_layout()
-plt.subplots_adjust(hspace=0.3)
+plt.subplots_adjust(hspace=0.3, wspace=0.1)
 
 # legend
 palette = sns.color_palette()[:5]
@@ -102,7 +105,7 @@ if include_multiviewica:
         Line2D([0], [0], color=palette[4], linewidth=2.5, linestyle='-', marker='D', 
                markeredgecolor="white", markersize=5))
 ncol = 3 if include_multiviewica else 4
-y_leg = 1.05 if include_multiviewica else 1.03
+y_leg = 1.05 if include_multiviewica else 1.02
 fig.legend(
     legend_styles, labels, bbox_to_anchor=(0.5, y_leg), loc="center",
     ncol=ncol, borderaxespad=0., fontsize=fontsize

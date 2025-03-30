@@ -41,9 +41,9 @@ elif metric == "amari_distance":
     metric_name = "Amari distance"
 
 # labels, dashes and curves order
-labels = ['MICaDo-ML', 'MICaDo-J']
-dashes = ['', '']
-hue_order = ["shica_ml", "shica_j"]
+labels = ['MICaDo-ML']
+dashes = ['']
+hue_order = ["shica_ml"]
 
 # plot
 fig, ax = plt.subplots(figsize=(6, 3))
