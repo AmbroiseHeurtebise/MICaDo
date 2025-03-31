@@ -78,9 +78,10 @@ caption = (
     "consisting of 2 Gaussian and 2 non-Gaussian \n"
     "disturbances. We vary the number of views in which the \n"
     "2 Gaussian disturbances have equal variances. The error \n"
-    "increases abruptly only when variances are equal in all views."
+    "increases abruptly only when variances are equal in all \n"
+    "views, which justifies Assumption 1."
 )
-fig.text(0.5, -0.38, caption, ha='center', va='center', fontsize=fontsize)
+fig.text(0.5, -0.42, caption, ha='center', va='center', fontsize=fontsize)
 
 # save figure
 figures_dir = Path("/storage/store2/work/aheurteb/MICaDo/simulation_studies/figures")

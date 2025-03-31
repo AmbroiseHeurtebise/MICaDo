@@ -19,7 +19,7 @@ rc = {
 plt.rcParams.update(rc)
 
 # parameters 
-nb_seeds = 20
+nb_seeds = 50
 metric = "error_P_spearmanr"  # or "error_B", "error_P_exact", "amari_distance"
 
 # read dataframe
@@ -91,9 +91,9 @@ caption = (
     "of 2 sub-Gaussian, 2 Gaussian, and 2 super-Gaussian disturbances. The x-axis \n"
     "represents the number of sparse entries in the strictly lower triangular part of \n"
     "each " + r"$T^i$" + ", while the y-axis shows the Spearman's rank correlation between true and \n"
-    "estimated causal orderings. Recovering the causal ordering is significantly easier \n"
-    "in the shared causal ordering scenario (Assumption 3) than in the multiple causal \n"
-    "orderings scenario (Assumption 2)."
+    "estimated causal orderings. Results justify Assumptions 2 and 3, since recovering \n"
+    "the causal ordering is significantly easier in the shared causal ordering scenario \n"
+    "(Assumption 3) than in the multiple causal orderings scenario (Assumption 2)."
 )
 fig.text(0.5, -0.2, caption, ha='center', va='center', fontsize=fontsize)
 
