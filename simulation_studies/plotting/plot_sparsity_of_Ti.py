@@ -47,7 +47,7 @@ hue_order = ["shica_ml"]
 titles = ["Multiple causal orderings", "Shared causal ordering"]
 
 # subplots
-fig, axes = plt.subplots(1, 2, figsize=(8, 2.7), sharex=True, sharey=True)
+fig, axes = plt.subplots(1, 2, figsize=(8, 2.8), sharex=True, sharey=True)
 for i, ax in enumerate(axes.flat):
     shared_causal_ordering = bool(i % 2)
     data = df[df["shared_causal_ordering"] == shared_causal_ordering]
@@ -84,6 +84,18 @@ fig.legend(
     legend_styles, labels, bbox_to_anchor=(0.5, 1.03), loc="center",
     ncol=2, borderaxespad=0., fontsize=fontsize
 )
+
+# caption
+caption = (
+    "Caption: Data are generated with $m=8$ views and $p=6$ disturbances, consisting \n"
+    "of 2 sub-Gaussian, 2 Gaussian, and 2 super-Gaussian disturbances. The x-axis \n"
+    "represents the number of sparse entries in the strictly lower triangular part of \n"
+    "each " + r"$T^i$" + ", while the y-axis shows the Spearman's rank correlation between true and \n"
+    "estimated causal orderings. Recovering the causal ordering is significantly easier \n"
+    "in the shared causal ordering scenario (Assumption 3) than in the multiple causal \n"
+    "orderings scenario (Assumption 2)."
+)
+fig.text(0.5, -0.2, caption, ha='center', va='center', fontsize=fontsize)
 
 # save figure
 figures_dir = Path("/storage/store2/work/aheurteb/MICaDo/simulation_studies/figures")

@@ -46,7 +46,7 @@ dashes = ['']
 hue_order = ["shica_ml"]
 
 # plot
-fig, ax = plt.subplots(figsize=(6, 3))
+fig, ax = plt.subplots(figsize=(6, 2.7))
 sns.lineplot(
     data=df, x="nb_equal_variances", y=metric, linewidth=2.5, hue="ica_algo", estimator=np.median,
     errorbar=('ci', 95), hue_order=hue_order, style_order=hue_order, style="ica_algo",
@@ -71,6 +71,16 @@ fig.legend(
     legend_styles, labels, bbox_to_anchor=(0.5, 0.99), loc="center",
     ncol=2, borderaxespad=0., fontsize=fontsize
 )
+
+# caption
+caption = (
+    "Caption: Data are generated with $m=5$ views and $p=4$\ndisturbances, "
+    "consisting of 2 Gaussian and 2 non-Gaussian \n"
+    "disturbances. We vary the number of views in which the \n"
+    "2 Gaussian disturbances have equal variances. The error \n"
+    "increases abruptly only when variances are equal in all views."
+)
+fig.text(0.5, -0.38, caption, ha='center', va='center', fontsize=fontsize)
 
 # save figure
 figures_dir = Path("/storage/store2/work/aheurteb/MICaDo/simulation_studies/figures")
