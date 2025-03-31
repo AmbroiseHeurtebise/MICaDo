@@ -111,6 +111,14 @@ fig.legend(
     ncol=ncol, borderaxespad=0., fontsize=fontsize
 )
 
+# caption
+caption = (
+    "Caption: Separation performance of ICA-LiNGAM, MultiGroupDirectLiNGAM, and two versions \n"
+    "of our method when we vary the number of views $m$ and disturbances $p$. The disturbances are \n"
+    "evenly divided into sub-Gaussian, Gaussian, and super-Gaussian groups."
+)
+fig.text(0.5, -0.05, caption, ha='center', va='center', fontsize=fontsize)
+
 # save figure
 figures_dir = Path("/storage/store2/work/aheurteb/MICaDo/simulation_studies/figures")
 plt.savefig(figures_dir / f"simulation_p_in_xaxis.pdf", bbox_inches="tight")
